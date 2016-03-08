@@ -1,0 +1,115 @@
+@CHARSET "UTF-8";
+
+.main_container {
+
+	height : 100%;
+
+}
+
+
+.header {
+	background: white;
+	padding-top : 10px;
+}
+.header .dropdown{
+	float : right;
+	margin-right : 12px;
+}
+/* logo */
+#logo_box {
+	min-width : 150px;
+}
+.logo img{
+	height : auto;
+	max-height :50px;
+	width : 100%;
+	max-width : 120px;
+
+}
+
+/* user */
+
+#user img{
+	width : 29px;
+	height :29px;
+	border-radius: 50%;
+}
+
+#user .info-number .badge {
+    font-size: 10px;
+    font-weight: normal;
+    line-height: 13px;
+    padding: 2px 6px;
+    position: absolute;
+    left: 7px;
+    top: 11px;
+}
+
+ul.msg_list li {
+    background: #f7f7f7;
+    padding: 5px;
+    display: flex;
+    margin: 6px 6px 0;
+    width: 96% !important;
+}
+
+ul.msg_list li:last-child {
+    margin-bottom: 6px;
+    padding: 10px;
+}
+
+
+ul.msg_list li a {
+    padding: 3px 5px !important;
+}
+
+ul.msg_list li a .image img {
+    border-radius: 2px 2px 2px 2px;
+    -webkit-border-radius: 2px 2px 2px 2px;
+    float: left;
+    margin-right: 10px;
+    width: 11%;
+}
+
+
+ul.msg_list li a .time {
+    font-size: 11px;
+    font-style: italic;
+    font-weight: bold;
+    position: absolute;
+    right: 35px;
+}
+
+ul.msg_list li a .message {
+    display: block !important;
+    font-size: 11px;
+}
+
+.dropdown-menu.msg_list {
+    width: 300px !important;
+}
+
+.dropdown-menu.msg_list span {
+    white-space: normal;
+}
+
+/* user end */
+
+/* searchbar */
+.search-form {
+    overflow: auto;
+}
+.search-form .form-control {
+    display: inline-block;
+    width: calc(100% - 100px);
+    max-width : 1000px;
+    vertical-align: middle;
+}
+.search-form .form-group {
+    display: inline;
+}
+.search-form .input-group {
+    display: inline;
+}
+
+

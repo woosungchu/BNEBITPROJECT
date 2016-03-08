@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd"
+	xmlns:mvc="http://www.springframework.org/schema/mvc">
+
+	<!-- 서블릿 컨테이너 디폴트 서블릿 위임 핸들러 -->
+	<mvc:default-servlet-handler />
+	
+	<mvc:annotation-driven />
+
+ 	<mvc:resources mapping="/assets/**" location="/assets/" />
+
+
+	<context:annotation-config />
+	<context:component-scan base-package="com.bnebit.sms.controller" />
+	
+	<!-- AOP -->
+	<aop:aspectj-autoproxy proxy-target-class="false" expose-proxy="true"/>
+
+	<!-- 타일즈 뷰 리졸버  -->
+    <beans:bean id="tilesConfigurer"
+        class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+        <beans:property name="definitions">
+            <beans:list>
+                <beans:value>/WEB-INF/tiles.xml</beans:value>
+                <beans:value>/WEB-INF/views/**/views.xml</beans:value>
+            </beans:list>
+        </beans:property>
+    </beans:bean>
+    <beans:bean id="tilesViewResolver"
+        class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+        <beans:property name="viewClass">
+            <beans:value>
+                org.springframework.web.servlet.view.tiles3.TilesView
+            </beans:value>
+        </beans:property>
+        <beans:property name="order" value="1"/>
+    </beans:bean>
+    
+    <!-- download View -->
+    <bean id="downloadView" class="com.bnebit.sms.util.DownloadView"/>
+	 <bean id="downloadViewResolver"
+	  class="org.springframework.web.servlet.view.BeanNameViewResolver">
+	  <property name="order">
+	   <value>0</value>
+	  </property>
+	 </bean>
+    
+    <!-- MultiPart Resolver -->
+ 	<bean id="multipartResolver"
+ 	  class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+ 	  <!-- 최대 업로드 사이즈 (넘어가면 Exception) 단위 byte -->
+ 	  <property name="maxUploadSize" 
+ 	     value="100000000"/>
+ 	   <!-- 최대 메모리 사이즈 단위 byte -->
+ 	   <property name="maxInMemorySize"
+ 	      value="100000000"/>
+ 	</bean>     
+    
+    <!-- logger -->
+    <bean id="logFactory" class="com.bnebit.sms.util.LogFactory" />
+ 	<bean id="log" factory-bean="logFactory" factory-method="getLog" />
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean id="loggerInterceptor" 
+            class="com.bnebit.sms.util.LoggerInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+	<!-- ModelAndView -->
+	<bean id="mav" 
+     class="org.springframework.web.servlet.ModelAndView"
+     scope="request">
+     	<aop:scoped-proxy/>
+     </bean>
+     
+     
+
+</beans>

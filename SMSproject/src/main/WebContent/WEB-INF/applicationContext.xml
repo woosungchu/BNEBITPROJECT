@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+        http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.1.xsd
+        http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring
+        http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.1.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<context:annotation-config />
+
+	<context:component-scan base-package="com.bit.wsc">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Repository" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Component" />
+	</context:component-scan>
+
+	<!--  oracle datasource -->
+<!--     <bean id="datasource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close"> -->
+<!--         <property name="URL" value="jdbc:oracle:thin:@localhost:1521:xe" /> -->
+<!--         <property name="user" value="wsc"/> -->
+<!--         <property name="password" value="wsc"/> -->
+<!--         <property name="connectionCachingEnabled" value="true"/> -->
+<!--         <qualifier value="main-db"/> -->
+<!--     </bean> -->
+
+	<!-- test -->
+    <bean id="datasource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close">
+        <property name="URL" value="jdbc:oracle:thin:@192.168.1.20:1521:orcl" />
+        <property name="user" value="woosungchu"/>
+        <property name="password" value="1234"/>
+        <property name="connectionCachingEnabled" value="true"/>
+        <qualifier value="main-db"/>
+    </bean>
+
+	<!--ibatis SqlMapClientFactoryBean -->
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="dataSource" ref="datasource"/>
+		<property name="configLocation" value="classpath:SqlMapConfig.xml"/>
+	</bean>
+
+	<!--ibatis SqlMapClientTemplate -->
+	<bean id="sqlMapClientTemplate" class="org.springframework.orm.ibatis.SqlMapClientTemplate">
+		<property name="sqlMapClient" ref="sqlMapClient"/>
+	</bean>
+
+	<!--  Production implementation of the JavaMailSender interface, supporting
+		both JavaMail MimeMessages and Spring SimpleMailMessages -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com" />
+		<property name="port" value="587" />
+		<property name="username" value="woosungchu@gmail.com"/>
+		<property name="password" value="" />
+
+		<!-- The name of the property, following JavaBean naming conventions -->
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.transport.protocol">smtp</prop>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+<!-- 				<prop key="mail.from.email">woosungchu@gmail.com</prop> -->
+				<prop key="mail.debug">true</prop>
+			</props>
+		</property>
+	</bean>
+
+
+</beans>
