@@ -1,6 +1,7 @@
 package com.bnebit.sms.util;
 
 import java.io.PrintWriter;
+
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -8,7 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.servlet.view.AbstractView;
 
-import net.sf.json.JSONObject;
+import com.bnebit.sms.vo.TestVO;
+import com.google.gson.Gson;
 
 public class JsonView extends AbstractView{
 
@@ -18,8 +20,9 @@ public class JsonView extends AbstractView{
 		
 		   response.setContentType("text/json;charset=UTF-8");
 		      PrintWriter out=response.getWriter();
-		      JSONObject json=(JSONObject)model.get("JSON");
-		      out.print(json);
+		      Object object=(Object)model.get("JSON");
+		      Gson gson = new Gson();
+		      out.print(gson.toJson(object));
 		      out.flush();
 		      out.close();
 		      

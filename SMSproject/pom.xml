@@ -136,47 +136,26 @@
         </dependency>
         
         <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${org.slf4j-version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${org.slf4j-version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.15</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.mail</groupId>
-                    <artifactId>mail</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.jms</groupId>
-                    <artifactId>jms</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jdmk</groupId>
-                    <artifactId>jmxtools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jmx</groupId>
-                    <artifactId>jmxri</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>runtime</scope>
-        </dependency>
+		  <dependency>
+		   <groupId>log4j</groupId>
+		   <artifactId>log4j</artifactId>
+		   <version>1.2.17</version>
+		  </dependency>
+		  <dependency>
+		   <groupId>commons-logging</groupId>
+		   <artifactId>commons-logging</artifactId>
+		   <version>1.1.1</version>
+		  </dependency>
+		  <dependency>
+		   <groupId>commons-lang</groupId>
+		   <artifactId>commons-lang</artifactId>
+		   <version>2.6</version>
+		  </dependency>
+		  <dependency>
+		   <groupId>org.slf4j</groupId>
+		   <artifactId>slf4j-api</artifactId>
+		   <version>1.7.5</version>
+		  </dependency>
         
         <!-- Servlet -->
         <dependency>
@@ -196,13 +175,22 @@
             <version>1.2</version>
         </dependency>
         
-        <!-- json lib -->
-        <dependency>
-		  <groupId>net.sf.json-lib</groupId>
-		  <artifactId>json-lib</artifactId>
-		  <version>2.2.3</version>
-		  <classifier>jdk15</classifier>
-		</dependency>
+        <!-- JSON gson -->
+		<dependency>
+        	 <groupId>com.google.code.gson</groupId>
+        	 <artifactId>gson</artifactId>
+        	 <version>2.3.1</version>
+     	 </dependency>
+     	 <dependency>
+	         <groupId>org.codehaus.jackson</groupId>
+	         <artifactId>jackson-mapper-asl</artifactId>
+	         <version>1.9.13</version>
+	      </dependency>
+	      <dependency>
+	         <groupId>com.fasterxml.jackson.core</groupId>
+	         <artifactId>jackson-databind</artifactId>
+	         <version>2.4.3</version>
+	      </dependency>
         
         <!--  java mail -->
 		<dependency>
@@ -217,7 +205,7 @@
 			<artifactId>commons-fileupload</artifactId>
 			<version>1.2.1</version>
 		</dependency>
-        
+	
         
         
        </dependencies>

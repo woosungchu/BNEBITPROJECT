@@ -12,13 +12,20 @@
 	<!-- 서블릿 컨테이너 디폴트 서블릿 위임 핸들러 -->
 	<mvc:default-servlet-handler />
 	
-	<mvc:annotation-driven />
+	<mvc:annotation-driven>
+		<mvc:message-converters register-defaults="true">
+         <bean
+            class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <property name="supportedMediaTypes" value="text/plain;charset=UTF-8" />
+         </bean>
+      </mvc:message-converters>
+	</mvc:annotation-driven>
 
  	<mvc:resources mapping="/assets/**" location="/assets/" />
 
 
 	<context:annotation-config />
-	<context:component-scan base-package="com.bnebit.sms.controller" />
+	<context:component-scan base-package="com.bnebit.sms" />
 	
 	<!-- AOP -->
 	<aop:aspectj-autoproxy proxy-target-class="false" expose-proxy="true"/>
@@ -43,9 +50,11 @@
         <beans:property name="order" value="1"/>
     </beans:bean>
     
-    <!-- download View -->
+    <!-- Abstract View -->
     <bean id="downloadView" class="com.bnebit.sms.util.DownloadView"/>
-	 <bean id="downloadViewResolver"
+    <bean id="JsonView" class="com.bnebit.sms.util.JsonView"/>
+    <!-- BeanNameResolver -->
+	 <bean id="beanNameViewResolver"
 	  class="org.springframework.web.servlet.view.BeanNameViewResolver">
 	  <property name="order">
 	   <value>0</value>
