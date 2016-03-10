@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.bnebit.sms.vo.TestVO;
 
 @Controller
+@RequestMapping("/home")
 public class HomeController {
 	
 	@Autowired 

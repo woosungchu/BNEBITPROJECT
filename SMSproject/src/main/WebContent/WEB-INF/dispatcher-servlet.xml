@@ -46,15 +46,19 @@
         <beans:property name="order" value="1"/>
     </beans:bean>
     
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	  <property name="prefix" value="/WEB-INF/view/"/>
+	  <property name="suffix" value=".jsp"/>
+	  <property name="order" value="2"/>
+ 	</bean>
+ 
     <!-- Abstract View -->
     <bean id="downloadView" class="com.bnebit.sms.util.DownloadView"/>
     <bean id="JsonView" class="com.bnebit.sms.util.JsonView"/>
     <!-- BeanNameResolver -->
 	 <bean id="beanNameViewResolver"
 	  class="org.springframework.web.servlet.view.BeanNameViewResolver">
-	  <property name="order">
-	   <value>0</value>
-	  </property>
+	  	<property name="order" value="0"/>
 	 </bean>
     
     <!-- MultiPart Resolver -->
