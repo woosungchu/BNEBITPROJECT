@@ -20,12 +20,8 @@
          </bean>
       </mvc:message-converters>
 	</mvc:annotation-driven>
-
- 	<mvc:resources mapping="/assets/**" location="/assets/" />
-
-
-	<context:annotation-config />
-	<context:component-scan base-package="com.bnebit.sms" />
+ 	
+	<context:component-scan base-package="com.bnebit.sms.controller"/>
 	
 	<!-- AOP -->
 	<aop:aspectj-autoproxy proxy-target-class="false" expose-proxy="true"/>
@@ -72,16 +68,7 @@
  	      value="100000000"/>
  	</bean>     
     
-    <!-- logger -->
-    <bean id="logFactory" class="com.bnebit.sms.util.LogFactory" />
- 	<bean id="log" factory-bean="logFactory" factory-method="getLog" />
-    <mvc:interceptors>
-        <mvc:interceptor>
-            <mvc:mapping path="/**"/>
-            <bean id="loggerInterceptor" 
-            class="com.bnebit.sms.util.LoggerInterceptor"></bean>
-        </mvc:interceptor>
-    </mvc:interceptors>
+    
 
 	<!-- ModelAndView -->
 	<bean id="mav" 

@@ -12,16 +12,13 @@ import com.bnebit.sms.vo.TestVO;
 @Controller
 public class HomeController {
 	
-//	@Autowired // 선생님한테 왜 안되는지 여쭈어볼것
-//	private Logger log;
+	@Autowired 
+	private Logger log;
 	
-	private Logger log = Logger.getLogger(getClass());
- 
     @RequestMapping(value = "/page1", method = RequestMethod.GET)
     public String firstPage(Model model) {
     	log.info("################################## TEST SUCCESS #######################################");
         model.addAttribute("firstPageMessage", "This is the first page");
-        System.out.println(123);
         return "firstpage";
     }
  
