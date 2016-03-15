@@ -8,4 +8,15 @@
 
  	<!-- sql mapping files -->
  	<sqlMap resource="test.xml"/>
+ 	<sqlMap resource="employee.xml"/>
+ 	<sqlMap resource="sessionKey.xml"/>
+ 	<sqlMap resource="dailyReport.xml"/>
+ 	<sqlMap resource="consulting.xml"/>
+ 	<sqlMap resource="weeklyPlan.xml"/>
+ 	<sqlMap resource="client.xml"/>
+ 	<sqlMap resource="chart.xml"/>
+	<sqlMap resource="validation.xml"/>
+	<sqlMap resource="dailyPlan.xml"/>
+	<sqlMap resource="event.xml"/>
+	<sqlMap resource="plan.xml"/>
 </sqlMapConfig>

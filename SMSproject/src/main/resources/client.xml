@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="client">
+
+	<typeAlias alias="Client" type="com.bnebit.sms.vo.Client" />
+	<typeAlias alias="PageSet" type="com.bnebit.sms.util.page.PageSet" />
+	<sql id="searchClient">
+	 	where
+	 		is_delete = 0
+		<isNotEmpty property="searchKey">
+			<isNotEmpty property="searchValue">
+				<isEqual property="searchKey" compareValue="code" prepend="AND">
+					client_code LIKE '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="name" prepend="AND">
+					client_name LIKE '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="ceo" prepend="AND">
+					ceo LIKE '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="addr" prepend="AND">
+					address LIKE '%' || #searchValue# || '%'
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+
+		<isNotEmpty property="startDate" prepend="AND">
+			reg_date >= #startDate#
+		</isNotEmpty>
+
+		<isNotEmpty property="endDate" prepend="AND">
+			reg_date <![CDATA[ < ]]>
+			TO_DATE(#endDate#) + 1
+		</isNotEmpty>
+
+		<isEmpty property="sortOrder" prepend="order by">
+			client_id desc
+		</isEmpty>
+
+		<isNotEmpty property="sortOrder" prepend="order by">
+				$sortOrder$
+		</isNotEmpty>
+
+	</sql>
+
+	<select id="selectClientCount" parameterClass="PageSet" resultClass="long">
+		select count(*)
+		from client
+		<include refid="searchClient" />
+	</select>
+
+	<select id="selectClientList" parameterClass="PageSet"  resultClass="Client">
+		select
+			*
+		from
+			(
+				select rownum as rnum, client_list.* from
+				(
+					select
+						client_id as clientId,
+						client_code as clientCode,
+						client_name as clientName,
+						second_name as secondName,
+						address,
+						phone,
+						ceo,
+						TO_CHAR(reg_date, 'RR/MM/DD hh24:mi:ss') regDate
+					from
+						client
+					<include refid="searchClient" />
+
+				) client_list
+				where
+					rownum <![CDATA[ <= ]]> #listEndNum#
+			)
+		where
+			rnum > #listStartNum#
+	</select>
+</sqlMap>

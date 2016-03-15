@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="consulting">
+
+	<!-- alias -->
+	<typeAlias alias="consulting"  type="com.bnebit.sms.vo.Consulting"/>
+	<typeAlias alias="consultingImg"  type="com.bnebit.sms.vo.ConsultingImg"/>
+
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
+
+	<resultMap id="consultingMap" class="java.util.HashMap">
+		<result property="consultingId" column="consulting_id"/>
+		<result property="title" column="title"/>
+		<result property="memberName" column="member_name"/>
+		<result property="managerName" column="manager_name"/>
+		<result property="deptName" column="dept_name"/>
+		<result property="clientName" column="client_name"/>
+		<result property="regDate" column="reg_date"/>
+	</resultMap>
+
+	<!-- 모든 상담일지를 목록으로 보여줌  -->
+	<select id="selectConsultingList" parameterClass="pageOption" resultMap="consultingMap">
+		select a.consulting_id, a.title, a.member_name, a.manager_name, a.dept_name, a.client_name, a.reg_date
+		from (
+		        select ROWNUM as rnum, b.consulting_id, b.title, b.member_name, b.manager_name, b.dept_name, b.client_name, to_char(b.reg_date,'YYYY.MM.DD HH24:MI:SS') reg_date
+		        from
+		        (
+		            select c.consulting_id, c.title, e.member_name, e.manager_name, e.dept_name, d.client_name, c.reg_date
+		            from consulting c,
+		            daily_report r,
+		            client d,
+		            (
+		                select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
+		                from employee e, dept f, (select e.emp_name, e.dept_id from employee e, leader l where e.emp_id = l.emp_id) g
+		                where f.dept_id = e.dept_id
+		                      AND f.dept_id = g.dept_id
+		            ) e
+		            where r.emp_id = e.emp_id
+		                  AND r.daily_report_id = c.daily_report_id
+		                  AND c.client_id = d.client_id
+		            <isEqual property="search" compareValue="true">
+		              <isNotEmpty property="searchField">
+		                <isNotEmpty property="searchString" prepend="and">
+		                  <isEqual property="searchOper" compareValue="eq">
+		                    $searchField$ like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ne">
+		                    $searchField$ not like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ge">
+		                    $searchField$ <![CDATA[ >= ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="le">
+		                    $searchField$ <![CDATA[ <= ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="gt">
+		                    $searchField$ <![CDATA[ > ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="lt">
+		                    $searchField$ <![CDATA[ < ]]> #searchString#
+		                  </isEqual>
+		                </isNotEmpty>
+		              </isNotEmpty>
+		            </isEqual>
+		            <isNotEmpty property="fullSidx">
+		                order by $fullSidx$
+		            </isNotEmpty>
+		        ) b
+		     ) a
+		where a.rnum between #start# and #end#
+	</select>
+
+	<!-- 모든 상담일지의 수를 보여줌  -->
+	<select id="selectConsultingListCount" parameterClass="pageOption" resultClass="int">
+		select count(*)
+		from consulting c,
+			 daily_report r,
+			 client d,
+			 (
+				select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
+				from employee e, dept f, (select e.emp_name, e.dept_id from employee e, leader l where e.emp_id = l.emp_id) g
+				where f.dept_id = e.dept_id
+						AND f.dept_id = g.dept_id
+			 ) e
+		where r.emp_id = e.emp_id
+			AND r.daily_report_id = c.daily_report_id
+			AND c.client_id = d.client_id
+			<isEqual property="search" compareValue="true">
+				<isNotEmpty property="searchField">
+					<isNotEmpty property="searchString" prepend="and">
+						<isEqual property="searchOper" compareValue="eq">
+							$searchField$ like '%' || #searchString# || '%'
+						</isEqual>
+						<isEqual property="searchOper" compareValue="ne">
+							$searchField$ not like '%' || #searchString# || '%'
+						</isEqual>
+						<isEqual property="searchOper" compareValue="ge">
+							$searchField$ <![CDATA[ >= ]]> #searchString#
+						</isEqual>
+						<isEqual property="searchOper" compareValue="le">
+							$searchField$ <![CDATA[ <= ]]> #searchString#
+						</isEqual>
+						<isEqual property="searchOper" compareValue="gt">
+							$searchField$ <![CDATA[ > ]]> #searchString#
+						</isEqual>
+						<isEqual property="searchOper" compareValue="lt">
+							$searchField$ <![CDATA[ < ]]> #searchString#
+						</isEqual>
+					</isNotEmpty>
+				</isNotEmpty>
+			</isEqual>
+	</select>
+
+	<!-- 전체 상담일지 목록에서 선택한 상담일지들( 체크박스 체크된 )을 모두 삭제 -->
+	<delete id="deleteConsultingList" parameterClass="[Ljava.lang.String;">
+		delete from consulting
+		<dynamic prepend = "where consulting_id in">
+		  <iterate open="(" conjunction="," close=")">
+		    #[]#
+		  </iterate>
+		</dynamic>
+	</delete>
+
+	<!-- 해당 상담일지를 삭제 -->
+	<delete id="deleteConsulting" parameterClass="string">
+		delete from consulting where consulting_id = #consultingId#
+	</delete>
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+
+
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Leader & Worker 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+
+	<!-- selectConsultingListMap -->
+	<resultMap class="HashMap" id="selectConsultingListMap">
+		<result property="consultingId" column="consulting_id"/>
+		<result property="title" column="title"/>
+		<result property="imgName" column="img_name"/>
+	</resultMap>
+
+	<!-- 상담일지 목록 -->
+	<select id="selectConsultingListWorker" resultMap="selectConsultingListMap">
+		select c.consulting_id, title, img_name
+		from consulting c left outer join consulting_img ci
+		on c.consulting_id = ci.consulting_id
+		where daily_report_id = #dailyReportId#
+		order by consulting_id desc
+	</select>
+
+	<!-- consultingViewMap -->
+	<resultMap class="HashMap" id="consultingViewMap">
+		<result property="consultingId" column="consulting_id"/>
+		<result property="deptId" column="dept_id"/>
+		<result property="deptName" column="dept_name"/>
+		<result property="regDate" column="reg_date"/>
+		<result property="title" column="title"/>
+		<result property="clientCode" column="client_code"/>
+		<result property="clientName" column="client_name"/>
+		<result property="ceo" column="ceo"/>
+		<result property="secondName" column="second_name"/>
+		<result property="address" column="address"/>
+		<result property="content" column="content"/>
+		<result property="imgName" column="img_name"/>
+	</resultMap>
+
+	<!-- 상담일지 조회 -->
+	<select id="selectConsultingView" parameterClass="consulting" resultMap="consultingViewMap">
+		select c.consulting_id, dept.dept_id, dept_name, c.reg_date, c.title, client_code, client_name, ceo, second_name, address, c.content, ci.img_name
+		from
+			dept inner join employee
+			on dept.dept_id = employee.dept_id
+			inner join daily_report
+			on employee.emp_id = daily_report.emp_id
+			inner join consulting c
+			on daily_report.daily_report_id = c.daily_report_id
+			inner join client
+			on c.client_id = client.client_id
+			left outer join consulting_img ci
+			on c.consulting_id = ci.consulting_id
+		where c.reg_date = #regDate#
+		and c.consulting_id = #consultingId#
+	</select>
+
+	<!-- 상담일지 작성 -->
+	<insert id="insertConsulting" parameterClass="consulting">
+		insert into consulting (consulting_id, title, reg_date, content, client_id, daily_report_id)
+		values (seq_consulting_id.nextval, #title#, sysdate, #content#, #client.clientId#, #dailyReport.dailyReportId#)
+	</insert>
+
+	<!-- 상담일지 파일추가 -->
+	<insert id="insertConsultingImg" parameterClass="consultingImg">
+		insert into consulting_img (consulting_img_id, consulting_id, img_name, origin_name)
+		values (seq_consulting_img_id.nextval, #consultingId#, #imgName#, #originName#)
+	</insert>
+
+	<!-- 상담일지 수정 -->
+	<update id="updateConsulting" parameterClass="consulting">
+		update consulting
+		set content = #content#,
+		client_id =
+		(
+		 select client_id
+		 from client
+		 where client_code = #client.clientCode#
+		)
+		where consulting_id = #consultingId# and exists
+		(
+		 select 1
+		 from daily_report
+		 where daily_report_id = #dailyReport.dailyReportId# and feedback is null
+		)
+	</update>
+
+	<!-- 상담일지 파일수정 -->
+	<update id="updateConsultingImg" parameterClass="consultingImg">
+		update consulting_img
+		set img_name = #imgName#,
+		origin_name = #originName#
+		where consulting_img_id = #consultingImgId#
+	</update>
+
+	<!-- 상담일지 삭제 -->
+	<delete id="deleteConsultingWorker" parameterClass="consulting">
+		delete from consulting
+		where consulting_id = #consultingId# and exists
+		(
+		 select 1
+		 from daily_report
+		 where daily_report_id = #dailyReport.dailyReportId# and feedback is null
+		)
+	</delete>
+
+	<!-- 상담일지 파일삭제 -->
+	<delete id="deleteConsultingImg" parameterClass="consultingImg">
+		delete from consulting_img
+		where consulting_img_id = #consultingImgId#
+	</delete>
+
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+</sqlMap>

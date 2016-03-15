@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.com//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="plan">
+
+	<resultMap class="com.bnebit.sms.vo.Plan" id="planResultMap">
+		<result property="planId" column="plan_id"/>
+		<result property="content" column="content"/>
+		<result property="type" column="type"/>
+		<result property="dailyPlan.planDate" column="plan_date"/>
+	</resultMap>
+
+	<!-- 계획 조회 -->
+	<select id="selectPlan" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="planResultMap">
+		select p.plan_id, p.content, p.type, d.plan_date
+		from   WEEKLY_PLAN w, DAILY_PLAN d, PLAN p
+		where  w.weekly_plan_id=d.weekly_plan_id
+    	     AND d.daily_plan_id=p.daily_plan_id
+           AND w.emp_id=#weeklyPlan.employee.empId#
+           AND d.plan_date=#planDate#
+	</select>
+	<!-- 계획 삽입 -->
+	<insert id="insertPlan" parameterClass="com.bnebit.sms.vo.Plan">
+		<selectKey keyProperty="planId" resultClass="String">
+			select seq_plan_id.nextval from dual
+		</selectKey>
+		insert into PLAN
+		values (#planId#, #dailyPlan.dailyPlanId#, #content#, #type#)
+	</insert>
+	<!-- 계획 삭제 -->
+	<insert id="deletePlan" parameterClass="java.lang.String">
+		delete from PLAN
+		where plan_id=#planId#
+	</insert>
+
+</sqlMap>
+
+
+
+
+
+
+
+
+
+
+
+
+

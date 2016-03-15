@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="sessionKey">
+	<typeAlias alias="Employee" type="com.bnebit.sms.vo.Employee"/>
+	<typeAlias alias="SessionKey" type="com.bnebit.sms.vo.SessionKey"/>
+	<typeAlias alias="Validation" type="com.bnebit.sms.vo.Validation"/>
+	<resultMap class="com.bnebit.sms.vo.SessionKey" id="sessionKeyMap">
+		<result column="session_key_id" property="sessionKeyId"/>
+		<result column="session_id" property="sessionId"/>
+		<result column="emp_id" property="employee.empId"/>
+		<result column="ip" property="ip"/>
+		<result column="mac_addr" property="macAddr"/>
+		<result column="expiration" property="expiration"/>
+	</resultMap>
+	<resultMap class="com.bnebit.sms.vo.Employee" id="empMap">
+		<result column="emp_id" property="empId"/>
+		<result column="emp_name" property="empName"/>
+		<result column="email" property="email"/>
+		<result column="phone" property="phone"/>
+		<result column="position" property="position"/>
+		<result property="dept" resultMap="test.deptMap"/>
+		<result column="state" property="state"/>
+		<result column="img_name" property="imgName"/>
+		<!--password는 빼고 조회 -->
+	</resultMap>
+	<resultMap class="com.bnebit.sms.vo.Dept" id="deptMap">
+		<result column="dept_id" property="deptId"/>
+		<result column="dept_name" property="deptName"/>
+	</resultMap>
+<!-- e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*,  -->
+	<select id="selectOne" parameterClass="SessionKey" resultMap="sessionKeyMap">
+	   <![CDATA[
+	    select s.SESSION_KEY_ID, s.SESSION_ID, s.EMP_ID,s.IP, s.EXPIRATION,s.MAC_ADDR 
+	     from
+	     (select * from Session_Key
+	      where session_ID = #sessionId#
+	      and ip = #ip#
+	      and mac_addr = #macAddr#
+	     order by session_key_id desc) s
+	    where rownum <= 1
+	   ]]>
+	  </select>
+	<insert id="insert" parameterClass="SessionKey">
+	  <![CDATA[
+	   insert INTO SESSION_KEY VALUES
+	   (seq_session_Key_id.nextVal, #sessionId# , #employee.empId# , #ip#, sysdate + 1, #macAddr#)
+	  ]]>
+	 </insert>
+	 <delete id="delete" parameterClass="java.lang.String">
+	   <![CDATA[
+	    delete from Session_Key where session_id = #sessionId#
+	   ]]>
+	  </delete>
+</sqlMap>
+

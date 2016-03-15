@@ -3,8 +3,8 @@
        "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
        "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
 <tiles-definitions>
-    <definition name="firstpage" extends="base.definition">
-        <put-attribute name="title" value="FrameworkOnly | First Page"></put-attribute>
-        <put-attribute name="body" value="/WEB-INF/views/firstbody.jsp"></put-attribute>
+    <definition name="mainPage" extends="base.definition">
+        <put-attribute name="title" value="Main Page - woosungchu"></put-attribute>
+        <put-attribute name="body" value="/WEB-INF/views/main/firstbody.jsp"></put-attribute>
     </definition>
 </tiles-definitions>

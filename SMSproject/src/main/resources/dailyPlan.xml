@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.com//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dailyPlan">
+
+	<resultMap class="com.bnebit.sms.vo.DailyPlan" id="dailyPlanResultMap">
+		<result property="dailyPlanId" column="daily_plan_id"/>
+		<result property="planDate" column="plan_date"/>
+		<result property="salesGoal" column="sales_goal"/>
+	</resultMap>
+
+	<!-- 일일계획 조회 -->
+	<select id="selectDailyPlan" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="dailyPlanResultMap">
+		select d.daily_plan_id, to_char(d.plan_date, 'yy/mm/dd') plan_date, d.sales_goal
+		from   WEEKLY_PLAN w, DAILY_PLAN d
+		where  w.weekly_plan_id=d.weekly_plan_id
+    	     AND w.emp_id=#weeklyPlan.employee.empId#
+      	   AND d.plan_date=#planDate#
+	</select>
+	<!-- 팀원 : 일일계획 작성 -->
+	<insert id="insertDailyPlan" parameterClass="com.bnebit.sms.vo.DailyPlan">
+		<selectKey keyProperty="dailyPlanId" resultClass="java.lang.String">
+			select seq_daily_plan_id.nextval from dual
+		</selectKey>
+		insert into DAILY_PLAN (DAILY_PLAN_ID, WEEKLY_PLAN_ID, PLAN_DATE, sales_goal)
+		values (#dailyPlanId#, #weeklyPlan.weeklyPlanId#, #planDate#, 0)
+	</insert>
+	<!-- 날짜와 empId로 일일계획 ID 가져오기 -->
+	<select id="selectDailyPlanId" resultClass="java.lang.String" parameterClass="com.bnebit.sms.vo.DailyPlan">
+		select d.daily_plan_id
+		from DAILY_PLAN d, WEEKLY_PLAN w
+		where d.weekly_plan_id=w.weekly_plan_id
+					AND w.emp_id=#weeklyPlan.employee.empId#
+					AND d.plan_date=#planDate#
+	</select>
+	<!-- 일일계획 저장 -->
+	<update id="updateDailyPlanSales" parameterClass="com.bnebit.sms.vo.DailyPlan">
+		update DAILY_PLAN
+		set sales_goal=#salesGoal#
+		where daily_plan_Id=#dailyPlanId#
+	</update>
+
+</sqlMap>
+
+
+
+
+
+
+
+
+
+
+
+
+

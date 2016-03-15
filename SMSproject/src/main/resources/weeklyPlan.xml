@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="weeklyPlan">
+
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
+
+	<resultMap id="weeklyPlanMap" class="java.util.HashMap">
+		<result property="weeklyPlanId" column="weekly_plan_id"/>
+		<result property="title" column="title"/>
+		<result property="monday" column="monday"/>
+		<result property="memberName" column="member_name"/>
+		<result property="managerName" column="manager_name"/>
+		<result property="deptName" column="dept_name"/>
+		<result property="checked" column="checked"/>
+		<result property="regDate" column="reg_date"/>
+	</resultMap>
+
+	<!-- 모든 주간 계획을 목록을 통하여 보여줌  -->
+	<select id="selectWeeklyPlanList" parameterClass="pageOption" resultMap="weeklyPlanMap">
+		select a.weekly_plan_id, a.title, a.monday, a.member_name, a.manager_name, a.dept_name, decode(a.checked,1,'읽음',0,'읽지 않음') checked, a.reg_date
+		from (
+		        select ROWNUM as rnum, b.weekly_plan_id, b.title, (to_char(b.monday,'YYYY.MM.DD  ~  ')||to_char(b.monday+4,'YYYY.MM.DD')) monday, b.member_name, b.manager_name, b.dept_name, b.checked, to_char(b.reg_date,'YYYY.MM.DD HH24:MI:SS') reg_date
+		        from
+		        (
+		            select c.weekly_plan_id, c.title, c.monday, e.member_name, e.manager_name, e.dept_name, c.checked, c.reg_date
+		            from weekly_plan c,
+		            (
+		                select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
+		                from employee e, dept f, (select e.emp_name, e.dept_id from employee e, leader l where e.emp_id = l.emp_id) g
+		                where f.dept_id = e.dept_id
+		                      AND
+		                      f.dept_id = g.dept_id
+		            ) e
+		            where c.emp_id = e.emp_id
+		            <isEqual property="search" compareValue="true">
+		              <isNotEmpty property="searchField">
+		                <isNotEmpty property="searchString" prepend="and">
+		                  <isEqual property="searchOper" compareValue="eq">
+		                    $searchField$ like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ne">
+		                    $searchField$ not like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ge">
+		                    $searchField$ <![CDATA[ >= ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="le">
+		                    $searchField$ <![CDATA[ <= ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="gt">
+		                    $searchField$ <![CDATA[ > ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="lt">
+		                    $searchField$ <![CDATA[ < ]]> #searchString#
+		                  </isEqual>
+		                </isNotEmpty>
+		              </isNotEmpty>
+		            </isEqual>
+		            <isNotEmpty property="fullSidx">
+		              order by $fullSidx$
+		            </isNotEmpty>
+		        ) b
+		     ) a
+		where a.rnum between #start# and #end#
+	</select>
+
+	<!-- 모든 주간 계획의 수를 보여줌  -->
+	<select id="selectWeeklyPlanListCount" parameterClass="pageOption" resultClass="int">
+		select count(*)
+        from weekly_plan c,
+        (
+            select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
+            from employee e, dept f, (select e.emp_name, e.dept_id from employee e, leader l where e.emp_id = l.emp_id) g
+            where f.dept_id = e.dept_id
+                  AND
+                  f.dept_id = g.dept_id
+        ) e
+        where c.emp_id = e.emp_id
+        <isEqual property="search" compareValue="true">
+          <isNotEmpty property="searchField">
+            <isNotEmpty property="searchString" prepend="and">
+              <isEqual property="searchOper" compareValue="eq">
+                $searchField$ like '%' || #searchString# || '%'
+              </isEqual>
+              <isEqual property="searchOper" compareValue="ne">
+                $searchField$ not like '%' || #searchString# || '%'
+              </isEqual>
+              <isEqual property="searchOper" compareValue="ge">
+                $searchField$ <![CDATA[ >= ]]> #searchString#
+              </isEqual>
+              <isEqual property="searchOper" compareValue="le">
+                $searchField$ <![CDATA[ <= ]]> #searchString#
+              </isEqual>
+              <isEqual property="searchOper" compareValue="gt">
+                $searchField$ <![CDATA[ > ]]> #searchString#
+              </isEqual>
+              <isEqual property="searchOper" compareValue="lt">
+                $searchField$ <![CDATA[ < ]]> #searchString#
+              </isEqual>
+            </isNotEmpty>
+          </isNotEmpty>
+        </isEqual>
+	</select>
+
+	<!-- 전체 주간 계획 목록에서 선택한 주간 계획들( 체크박스 체크된 )을 모두 삭제-->
+	<delete id="deleteWeeklyPlanList" parameterClass="[Ljava.lang.String;">
+		delete from weekly_plan
+		<dynamic prepend = "where weekly_plan_id in">
+		  <iterate open="(" conjunction="," close=")">
+		    #[]#
+		  </iterate>
+		</dynamic>
+	</delete>
+
+	<!-- 해당 주간 계획을 삭제  -->
+	<delete id="deleteWeeklyPlan" parameterClass="string">
+		delete from weekly_plan where weekly_plan_id = #weeklyPlanId#
+	</delete>
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+
+	<resultMap class="com.bnebit.sms.vo.WeeklyPlan" id="weeklyPlanListResultMap">
+		<result property="employee.empId" column="emp_id"/>
+		<result property="employee.empName" column="emp_name"/>
+		<result property="employee.dept.deptId" column="dept_id"/>
+		<result property="weeklyPlanId" column="weekly_plan_id"/>
+		<result property="regDate" column="reg_date"/>
+		<result property="title" column="title"/>
+		<result property="monday" column="monday"/>
+		<result property="checked" column="checked"/>
+	</resultMap>
+
+	<!-- 한 팀원의 주간계획 리스트 조회 -->
+	<select id="selectWeeklyPlanListEmp" parameterClass="java.util.HashMap" resultMap="weeklyPlanListResultMap">
+		<![CDATA[
+			select B.dept_id, B.emp_id, B.emp_name, B.weekly_plan_id, B.reg_date, B.title, to_char(B.monday, 'yyyy/mm/dd~')||to_char(B.monday+4, 'yyyy/mm/dd') monday, B.checked
+			from (select rownum as rnum, A.dept_id, A.emp_id, A.emp_name, A.weekly_plan_id, A.reg_date, A.title, A.monday, A.checked
+						from (select e.dept_id, e.emp_id, e.emp_name, w.weekly_plan_id, w.reg_date, w.title, w.monday, w.checked
+									from WEEKLY_PLAN w, EMPLOYEE e
+									where e.emp_id=w.emp_id
+									      AND e.emp_id=#empId#
+									order by reg_date) A
+						where rownum <= #rownum#+10) B
+			where rnum > #rownum#
+		]]>
+	</select>
+	<!-- 팀장 : 팀원 전체의 주간계획 리스트 조회 -->
+	<select id="selectWeeklyPlanListManager" parameterClass="java.util.HashMap" resultMap="weeklyPlanListResultMap">
+		<![CDATA[
+			select B.dept_id, B.emp_id, B.emp_name, B.weekly_plan_id, B.reg_date, B.title, to_char(B.monday, 'yyyy/mm/dd~')||to_char(B.monday+4, 'yyyy/mm/dd') monday, B.checked
+			from (select rownum as rnum, A.dept_id, A.emp_id, A.emp_name, A.weekly_plan_id, A.reg_date, A.title, A.monday, A.checked
+						from (select e.dept_id, e.emp_id, e.emp_name, w.weekly_plan_id, w.reg_date, w.title, w.monday, w.checked
+									from EMPLOYEE e, WEEKLY_PLAN w
+									where e.emp_id=w.emp_id
+												AND e.dept_id=#deptId#
+									order by reg_date DESC) A
+						where rownum <= #rownum# + 10) B
+			where rnum > #rownum#
+		]]>
+	</select>
+	<!-- 팀장 : 특정한 주의 전체 팀원의 주간계획 리스트 조회 -->
+	<select id="selectWeeklyPlanListWeek" parameterClass="java.util.HashMap" resultMap="weeklyPlanListResultMap">
+		<![CDATA[
+			select B.dept_id, B.emp_id, B.emp_name, B.weekly_plan_id, B.reg_date, B.title,  to_char(B.monday, 'yyyy/mm/dd~')||to_char(B.monday+4, 'yyyy/mm/dd') monday, B.checked
+			from (select rownum as rnum, A.dept_id, A.emp_id, A.emp_name, A.weekly_plan_id, A.reg_date, A.title, A.monday, A.checked
+						from (select e.dept_id, e.emp_id, e.emp_name, w.weekly_plan_id, w.reg_date, w.title, w.monday, w.checked
+									from EMPLOYEE e, WEEKLY_PLAN w
+									where e.emp_id=w.emp_id
+												AND e.dept_id=#deptId#
+												AND w.monday=#monday#
+									order by reg_date) A
+						where rownum <= #rownum# + 10) B
+			where rnum > #rownum#
+		]]>
+	</select>
+
+	<resultMap class="com.bnebit.sms.vo.WeeklyPlan" id="weeklyPlanETCResultMap">
+		<result property="weeklyPlanId" column="weekly_plan_id"/>
+		<result property="employee.dept.deptName" column="dept_name"/>
+		<result property="employee.empId" column="emp_id"/>
+		<result property="employee.empName" column="emp_name"/>
+		<result property="title" column="title"/>
+		<result property="regDate" column="reg_date"/>
+		<result property="monday" column="monday"/>
+	</resultMap>
+	<!-- sales 제외한 주간계획 조회 -->
+	<select id="selectWeeklyETC" parameterClass="java.lang.String" resultMap="weeklyPlanETCResultMap">
+		<![CDATA[
+			select w.weekly_plan_id, d.dept_name, e.emp_id, e.emp_name, w.title, w.reg_date, to_char(w.monday, 'yy/MM/dd') monday
+			from WEEKLY_PLAN w, EMPLOYEE e, DEPT d
+	 		where w.emp_id=e.emp_id
+	 					AND e.dept_id=d.dept_id
+	 					AND w.weekly_plan_id=#weeklyPlanId#
+ 		]]>
+	</select>
+
+	<resultMap class="com.bnebit.sms.vo.WeeklyPlan" id="weeklyPlanSalesResultMap">
+		<result property="weeklyPlanId" column="weekly_plan_id"/>
+		<result property="employee.empId" column="emp_id"/>
+		<result property="employee.empName" column="emp_name"/>
+		<result property="employee.dept.deptName" column="dept_name"/>
+		<result property="regDate" column="reg_date"/>
+		<result property="title" column="title"/>
+		<result property="monday" column="monday"/>
+		<result property="salesGoalSum" column="sales_goal_sum"/>
+		<result property="profitSum" column="profit_sum"/>
+		<result property="achievement" column="achievement"/>
+	</resultMap>
+	<!-- 한 팀원의 주간계획 조회 -->
+	<select id="selectWeeklyPlan" parameterClass="java.lang.String" resultMap="weeklyPlanSalesResultMap">
+		select  DISTINCT w.weekly_plan_id, e.emp_id, e.emp_name, d.dept_name, w.reg_date, w.title,
+	          to_char(w.monday, 'yyyy/mm/dd~')||to_char(w.monday+4, 'yyyy/mm/dd') monday,
+	          sum(p.sales_goal) over(partition by p.weekly_plan_id) sales_goal_sum,
+	          NVL((select sum(profit) from daily_report r, daily_plan p, weekly_plan w
+                 where w.weekly_plan_id=p.weekly_plan_id AND r.emp_id=w.emp_id AND p.plan_date=r.reg_date AND w.weekly_plan_id=#weeklyPlanId#), 0) profit_sum,
+            ROUND((select sum(profit) from daily_report r, daily_plan p, weekly_plan w
+                    where w.weekly_plan_id=p.weekly_plan_id AND r.emp_id=w.emp_id AND p.plan_date=r.reg_date AND w.weekly_plan_id=#weeklyPlanId#)
+                   * 100 / sum(p.sales_goal)over(partition by p.weekly_plan_id), 2) || '%' as achievement
+		from   WEEKLY_PLAN w, EMPLOYEE e, DEPT d, daily_plan p
+		where  w.emp_id=e.emp_id
+		       AND e.dept_id=d.dept_id
+		       AND w.weekly_plan_id=#weeklyPlanId#
+		       AND w.weekly_plan_id=p.weekly_plan_id
+	</select>
+
+	<!-- empId, monday로 주간계획 조회 -->
+	<select id="selectWeeklyPlanByEmpMonday" parameterClass="com.bnebit.sms.vo.WeeklyPlan" resultClass="java.lang.String">
+		select w.weekly_plan_id
+		from WEEKLY_PLAN w, EMPLOYEE e
+		where w.emp_id=e.emp_id
+					AND w.monday=#monday#
+					AND e.emp_id=#employee.empId#
+	</select>
+
+	<!-- 팀장 : check상태를 1로 변경 -->
+	<update id="updateWeeklyChecked1" parameterClass="com.bnebit.sms.vo.WeeklyPlan">
+		update WEEKLY_PLAN
+		set    checked=1
+		where  emp_id=#employee.empId#
+           AND monday=#monday#
+	</update>
+	<!-- 팀원 : 주간계획 작성 -->
+	<insert id="insertWeeklyPlan" parameterClass="com.bnebit.sms.vo.WeeklyPlan">
+		<selectKey keyProperty="weeklyPlanId" resultClass="java.lang.String">
+			select seq_weekly_plan_id.nextval from dual
+		</selectKey>
+		insert into WEEKLY_PLAN
+		values (#weeklyPlanId#, #employee.empId#, sysdate, #title#, #monday#, 0)
+	</insert>
+	<!-- checked를 0으로 수정 -->
+	<update id="updateWeeklyChecked0" parameterClass="com.bnebit.sms.vo.WeeklyPlan">
+		update WEEKLY_PLAN
+		set checked='0'
+		where monday=#monday#
+          AND emp_id=#employee.empId#
+	</update>
+	<!-- plan이 속한 주간계획 id 조회 -->
+	<select id="selectWeeklyPlanByPlan" parameterClass="java.lang.String" resultClass="java.lang.String">
+		select w.weekly_plan_id
+		from WEEKLY_PLAN w, DAILY_PLAN d, PLAN p
+		where w.weekly_plan_id=d.weekly_plan_id
+					AND d.daily_plan_id=p.daily_plan_id
+					AND p.plan_id=#planId#
+	</select>
+
+	<resultMap class="com.bnebit.sms.vo.DailyPlan" id="calendarLeaderResultMap">
+		<result property="weeklyPlan.employee.empName" column="emp_name"/>
+		<result property="planDate" column="plan_date"/>
+	</resultMap>
+	<!-- 팀장 : 주간계획 제출한 모든 사원의 이름 조회 -->
+	<select id="selectCalendarManager" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="calendarLeaderResultMap">
+		select DISTINCT e.emp_name, d.plan_date
+		from EMPLOYEE e, WEEKLY_PLAN w, DAILY_PLAN d, Plan p
+		where e.emp_id=w.emp_id
+    		  AND w.WEEKLY_PLAN_ID=d.WEEKLY_PLAN_ID
+    		  AND p.daily_plan_id=d.daily_plan_id
+    		  AND e.dept_id=#weeklyPlan.employee.dept.deptId#
+   		    AND d.PLAN_DATE between TO_DATE(#planDate#) AND ADD_MONTHS(TO_DATE(#planDate#), 1)
+	</select>
+
+	<resultMap class="com.bnebit.sms.vo.Plan" id="calendarPlanResultMap">
+		<result property="dailyPlan.planDate" column="plan_date"/>
+		<result property="content" column="content"/>
+	</resultMap>
+	<!-- 본인의 plan 조회 -->
+	<select id="selectCalendarPlan" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="calendarPlanResultMap">
+		select p.content, d.plan_date
+		from WEEKLY_PLAN w,DAILY_PLAN d, PLAN p
+		where w.weekly_plan_id=d.weekly_plan_id
+    		  AND p.daily_plan_id=d.daily_plan_id
+      		AND w.emp_id=#weeklyPlan.employee.empId#
+      		AND d.PLAN_DATE between TO_DATE(#planDate#) AND ADD_MONTHS(TO_DATE(#planDate#), 1)
+	</select>
+</sqlMap>

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dailyReport">
+	<!-- alias -->
+	<typeAlias alias="dailyReport" type="com.bnebit.sms.vo.DailyReport"/>
+	<typeAlias alias="employee" type="com.bnebit.sms.vo.Employee" />
+	<typeAlias alias="dept" type="com.bnebit.sms.vo.Dept" />
+	<typeAlias alias="dailyPlan" type="com.bnebit.sms.vo.DailyPlan" />
+	<typeAlias alias="event" type="com.bnebit.sms.vo.Event" />
+
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
+
+	<resultMap id="dailyReportMap" class="java.util.HashMap">
+		<result property="dailyReportId" column="daily_report_id"/>
+		<result property="title" column="title"/>
+		<result property="memberName" column="member_name"/>
+		<result property="managerName" column="manager_name"/>
+		<result property="deptName" column="dept_name"/>
+		<result property="profit" column="profit"/>
+		<result property="regDate" column="reg_date"/>
+	</resultMap>
+
+	<!-- 모든 일일업무 보고 일지를 목록을 통하여 보여줌   -->
+	<select id="selectDailyReportList" parameterClass="pageOption" resultMap="dailyReportMap">
+		select a.daily_report_id, a.title, a.member_name, a.manager_name, a.dept_name, a.profit, a.reg_date
+		from (
+		        select ROWNUM as rnum, b.daily_report_id, b.title, b.member_name, b.manager_name, b.dept_name, b.profit, to_char(b.reg_date,'YYYY.MM.DD HH24:MI:SS') reg_date
+		        from
+		        (
+		            select c.daily_report_id, c.title, e.member_name, e.manager_name, e.dept_name, c.profit, c.reg_date
+		            from daily_report c,
+		            (
+			              select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
+			              from employee e, dept f, (select e.emp_name, e.dept_id from employee e, leader l where e.emp_id = l.emp_id) g
+			              where f.dept_id = e.dept_id
+			                    AND
+			                    f.dept_id = g.dept_id
+		            ) e
+		            where c.emp_id = e.emp_id
+		            <isEqual property="search" compareValue="true">
+		              <isNotEmpty property="searchField">
+		                <isNotEmpty property="searchString" prepend="and">
+		                  <isEqual property="searchOper" compareValue="eq">
+		                    $searchField$ like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ne">
+		                    $searchField$ not like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ge">
+		                    $searchField$ <![CDATA[ >= ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="le">
+		                    $searchField$ <![CDATA[ <= ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="gt">
+		                    $searchField$ <![CDATA[ > ]]> #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="lt">
+		                    $searchField$ <![CDATA[ < ]]> #searchString#
+		                  </isEqual>
+		                </isNotEmpty>
+		              </isNotEmpty>
+		            </isEqual>
+		            <isNotEmpty property="fullSidx">
+		                order by $fullSidx$
+		            </isNotEmpty>
+		        ) b
+		     ) a
+		where a.rnum between #start# and #end#
+	</select>
+
+	<!-- 모든 일일업무 보고의 수를 보여줌 -->
+	<select id="selectDailyReportListCount" parameterClass="pageOption" resultClass="int">
+		select count(*)
+		from daily_report c,
+		(
+		   select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
+		   from employee e, dept f, (select e.emp_name, e.dept_id from employee e, leader l where e.emp_id = l.emp_id) g
+		   where f.dept_id = e.dept_id
+		         AND
+		         f.dept_id = g.dept_id
+		) e
+		where c.emp_id = e.emp_id
+		<isEqual property="search" compareValue="true">
+			<isNotEmpty property="searchField">
+				<isNotEmpty property="searchString" prepend="and">
+					<isEqual property="searchOper" compareValue="eq">
+						$searchField$ like '%' || #searchString# || '%'
+					</isEqual>
+					<isEqual property="searchOper" compareValue="ne">
+						$searchField$ not like '%' || #searchString# || '%'
+					</isEqual>
+					<isEqual property="searchOper" compareValue="ge">
+						$searchField$ <![CDATA[ >= ]]> #searchString#
+					</isEqual>
+					<isEqual property="searchOper" compareValue="le">
+						$searchField$ <![CDATA[ <= ]]> #searchString#
+					</isEqual>
+					<isEqual property="searchOper" compareValue="gt">
+						$searchField$ <![CDATA[ > ]]> #searchString#
+					</isEqual>
+					<isEqual property="searchOper" compareValue="lt">
+						$searchField$ <![CDATA[ < ]]> #searchString#
+					</isEqual>
+				</isNotEmpty>
+			</isNotEmpty>
+		</isEqual>
+	</select>
+
+	<!-- 전체 일일업무 보고 목록에서 선택한 일일업무 보고들( 체크박스 체크된 )을 모두 삭제 ( 일일업무 보고에 포함 되어있는 상담일지들도 삭제됨 )-->
+	<delete id="deleteDailyReportList" parameterClass="[Ljava.lang.String;">
+		delete from daily_report
+		<dynamic prepend = "where daily_report_id in">
+		  <iterate open="(" conjunction="," close=")">
+		    #[]#
+		  </iterate>
+		</dynamic>
+	</delete>
+
+	<!-- 해당 일일업무 보고를 삭제 ( 해당 일일업무 보고에 포함 되어 있는 상담일지들도 삭제됨 ) -->
+	<delete id="deleteDailyReport" parameterClass="string">
+		delete from daily_report where daily_report_id = #dailyReportId#
+	</delete>
+
+	<!-- 해당 일일업무 보고를 입력한 내용으로 정보 변경 -->
+	<update id="updateDailyReport" parameterClass="dailyReport">
+		update daily_report
+		set departure = #departure#,
+			arrival = #arrival#,
+			profit = #profit#,
+			content = #content#,
+			feedback = #feedback#
+		where daily_report_id = #dailyReportId#
+	</update>
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+
+
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Leader & Worker 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+
+	<!-- dailyReportMap -->
+	<resultMap class="dailyReport" id="dailyReportViewMap">
+		<result column="daily_report_id" property="dailyReportId" />
+		<result column="title" property="title" />
+		<result property="employee" resultMap="dailyReport.empMap" />
+		<result column="departure" property="departure" />
+		<result column="arrival" property="arrival" />
+		<result column="profit" property="profit" />
+		<result column="reg_date" property="regDate" />
+		<result column="content" property="content" />
+		<result column="feedback" property="feedback" />
+	</resultMap>
+
+	<resultMap class="employee" id="empMap">
+		<result column="emp_id" property="empId" />
+		<result column="emp_name" property="empName" />
+		<result column="email" property="email" />
+		<result column="phone" property="phone" />
+		<result column="position" property="position" />
+		<result property="dept" resultMap="dailyReport.deptMap" />
+		<result column="state" property="state" />
+		<result column="img_name" property="imgName" />
+		<!--password는 빼고 조회 -->
+	</resultMap>
+
+	<resultMap class="dept" id="deptMap">
+		<result column="dept_id" property="deptId" />
+		<result column="dept_name" property="deptName" />
+	</resultMap>
+
+	<!-- selectDailyReportListMap -->
+	<resultMap class="dailyReport" id="selectDailyReportListMap">
+		<result column="daily_report_id" property="dailyReportId" />
+		<result column="title" property="title" />
+		<result property="employee" resultMap="dailyReport.empSubMap" />
+		<result column="reg_date" property="regDate" />
+		<result column="feedback" property="feedback" />
+	</resultMap>
+
+	<resultMap class="employee" id="empSubMap">
+		<result column="emp_id" property="empId" />
+		<result column="emp_name" property="empName" />
+	</resultMap>
+
+	<!-- 일일보고 목록조회(팀장) -->
+	<select id="selectDailyReportListLeader" parameterClass="java.util.HashMap"
+		resultMap="selectDailyReportListMap">
+		select daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date,
+		feedback
+		from
+		employee, daily_report
+		where employee.emp_id =
+		daily_report.emp_id
+		and dept_id = #deptId#
+		<isNotEmpty property="searchKey">
+			<isNotEmpty property="searchValue">
+				<isEqual property="searchKey" compareValue="title" prepend="and">
+					title like '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="writer" prepend="and">
+					emp_name like '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="regDate"
+					prepend="and">
+					reg_date like '%' || #searchValue# || '%'
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="sortKey" prepend="order by">
+			$sortKey$
+		</isNotEmpty>
+	</select>
+
+	<!-- 일일보고 목록조회(팀원) -->
+	<select id="selectDailyReportListWorker" resultMap="selectDailyReportListMap">
+		select daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date, feedback
+		from employee, daily_report
+		where employee.emp_id =
+		daily_report.emp_id
+		and employee.emp_id = #empId#
+		<isNotEmpty property="searchKey">
+			<isNotEmpty property="searchValue">
+				<isEqual property="searchKey" compareValue="title" prepend="and">
+					title like '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="writer" prepend="and">
+					emp_name like '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="regDate"
+					prepend="and">
+					reg_date like '%' || #searchValue# || '%'
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="sortKey" prepend="order by">
+			$sortKey$
+		</isNotEmpty>
+	</select>
+
+	<!-- 이벤트 조회 -->
+	<select id="selectEvent" resultClass="event">
+		select event_id, event_date, holiday, title
+		from events
+		where event_date = to_char(SYSDATE, 'RRRR/MM/DD')
+	</select>
+
+	<!-- 일일보고 내용조회 -->
+	<select id="selectDailyReportView" parameterClass="HashMap"
+		resultMap="dailyReportMap">
+		select daily_report_id, title, employee.emp_id, emp_name, phone, email, position,
+		dept.dept_id, dept_name, state, img_name, departure, arrival, profit, to_char(reg_date, 'RRRR/MM/DD') reg_date, content, feedback
+		from dept, employee, daily_report
+		where dept.dept_id = employee.dept_id
+		and employee.emp_id = daily_report.emp_id
+		and daily_report_id = #dailyReportId#
+	</select>
+
+	<!-- dailyPlanSubMap -->
+	<resultMap class="dailyPlan" id="dailyPlanSubMap">
+		<result column="plan_date" property="planDate" />
+		<result column="sales_goal" property="salesGoal" />
+	</resultMap>
+
+	<!-- 일일보고 내용조회 -->
+	<select id="selectSalesGoal" parameterClass="HashMap" resultMap="dailyPlanSubMap">
+		select plan_date, sales_goal
+		from weekly_plan, daily_plan
+		where weekly_plan.weekly_plan_id = daily_plan.weekly_plan_id
+		and emp_id=
+		(
+			select emp_id
+			from daily_report
+			where daily_report_id = #dailyReportId#
+		)
+		and plan_date = #planDate#
+	</select>
+
+	<!-- 일일보고 결재 -->
+	<update id="updateDailyReportConfirm" parameterClass="dailyReport">
+		update daily_report
+		set feedback = #feedback#
+		where daily_report_id = #dailyReportId#
+	</update>
+
+	<!-- 일일보고 작성 -->
+	<insert id="insertDailyReport" parameterClass="dailyReport">
+		insert into daily_report (daily_report_id, title, emp_id, departure, arrival, profit, reg_date, content, feedback)
+		values (seq_daily_report_id.nextval, #title#, #employee.empId#, #departure#, #arrival#, #profit#, sysdate, #content#, null)
+	</insert>
+
+	<!-- 일일보고 수정 -->
+	<update id="updateDailyReportWorker" parameterClass="dailyReport">
+		update daily_report
+		set departure = #departure#,
+			 arrival = #arrival#,
+			 profit = #profit#,
+			 content = #content#
+		where daily_report_id = #dailyReportId#
+		and feedback is null
+	</update>
+
+</sqlMap>
+	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->

@@ -6,7 +6,6 @@
 
 }
 
-
 .header {
 	background: white;
 	padding-top : 10px;
@@ -112,4 +111,12 @@ ul.msg_list li a .message {
     display: inline;
 }
 
-
+/* 20160315 woosungchu added */
+#userInfoBox{
+	padding-left : 11px;
+	padding-right : 12px;
+}
+#profileImg{
+	border :2px solid #000;
+	width : 128px;
+}

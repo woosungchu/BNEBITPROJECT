@@ -8,7 +8,7 @@
 				style="margin-top: 300px;">
 				<div class="container">
 					This is the First Page Body Tile Section. <br> <a
-						href="${pageContext.servletContext.contextPath}/page2">Go to
+						href="${pageContext.servletContext.contextPath}/home/page2">Go to
 						Second Page</a>
 				</div>
 			</div>

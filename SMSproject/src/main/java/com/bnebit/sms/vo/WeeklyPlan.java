@@ -74,6 +74,4 @@ public class WeeklyPlan implements Serializable {
 				+ ", title=" + title + ", monday=" + monday + ", checked=" + checked + ", salesGoalSum=" + salesGoalSum
 				+ ", profitSum=" + profitSum + ", achievement=" + achievement + "]";
 	}
-
-
 }

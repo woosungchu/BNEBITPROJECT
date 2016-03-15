@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="employee">
+	<typeAlias alias="Employee" type="com.bnebit.sms.vo.Employee"/>
+	<typeAlias alias="Validation" type="com.bnebit.sms.vo.Validation"/>
+	<resultMap class="com.bnebit.sms.vo.Employee" id="empMap">
+		<result column="emp_id" property="empId"/>
+		<result column="emp_name" property="empName"/>
+		<result column="email" property="email"/>
+		<result column="phone" property="phone"/>
+		<result column="position" property="position"/>
+		<result property="dept" resultMap="employee.deptMap"/>
+		<result column="state" property="state"/>
+		<result column="img_name" property="imgName"/>
+		<!--password는 빼고 조회 -->
+	</resultMap>
+	<resultMap class="com.bnebit.sms.vo.Dept" id="deptMap">
+		<result column="dept_id" property="deptId"/>
+		<result column="dept_name" property="deptName"/>
+	</resultMap>
+<!-- e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*,  -->
+	<select id="selectOneById" parameterClass="java.lang.String" resultMap="empMap">
+	   <![CDATA[
+	    select e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*
+	     from Employee e inner join dept d on e.dept_id = d.dept_id
+	     where e.emp_id = #empId#
+	   ]]>
+	  </select>
+	<select id="selectOneByEmailPw" parameterClass="Employee" resultMap="empMap">
+	  <![CDATA[
+	   select e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*
+	   from employee e inner join dept d on e.dept_id = d.dept_id
+	   where e.email = #email# and e.password = #password#
+	  ]]>
+	 </select>
+	 <select id="selectEmployeeByEmailName" parameterClass="Employee" resultMap="empMap">
+	  <![CDATA[
+	   select e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*
+	   from employee e inner join dept d on e.dept_id = d.dept_id
+	   where e.email = #email# and e.EMP_NAME = #empName#
+	  ]]>
+	 </select>
+
+	 <update id="updatePassword"  parameterClass="Employee">
+	   <![CDATA[
+	    update employee
+		  set password = #password#
+		  where emp_id = #empId#
+	   ]]>
+	  </update>
+
+	  <!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+	  <!-- 전체 사용자 목록을 보여줌  -->
+	  	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
+
+		<resultMap id="empListResultMap" class="Employee">
+			<result property="empId" column="emp_id"/>
+			<result property="empName" column="emp_name"/>
+			<result property="position" column="position"/>
+			<result property="dept.deptName" column="dept_name"/>
+			<result property="phone" column="phone"/>
+			<result property="email" column="email"/>
+			<result property="state" column="state"/>
+		</resultMap>
+
+		<resultMap id="empResultMap" class="Employee" extends="empListResultMap">
+			<result property="imgName" column="img_name"/>
+		</resultMap>
+
+		<!-- 전체 사용자의 목록을 보여줌  -->
+		<select id="selectEmpList" parameterClass="pageOption" resultMap="empListResultMap">
+			select a.emp_id, a.emp_name, a.dept_name, a.position, a.phone, a.email, a.state
+			from (
+			        select ROWNUM as rnum, b.emp_id, b.emp_name, b.position, b.dept_name, b.phone, b.email, b.state
+			        from
+			        (
+			            select e.emp_id, e.emp_name, e.position, d.dept_name, e.phone, e.email, e.state
+			            from employee e, dept d
+			            where e.dept_id = d.dept_id
+			            <isEqual property="search" compareValue="true">
+			              <isNotEmpty property="searchField">
+			                <isNotEmpty property="searchString" prepend="and">
+			                  <isEqual property="searchOper" compareValue="eq">
+			                      $searchField$ like '%' || #searchString# || '%'
+			                  </isEqual>
+			                  <isEqual property="searchOper" compareValue="ne">
+			                      $searchField$ not like '%' || #searchString# || '%'
+			                  </isEqual>
+			                </isNotEmpty>
+			              </isNotEmpty>
+			            </isEqual>
+			            <isNotEmpty property="fullSidx">
+			              order by $fullSidx$
+			            </isNotEmpty>
+			        ) b
+			    ) a
+			where a.rnum between #start# and #end#
+		</select>
+
+		<!-- 전체 사용자의 수를 보여줌  -->
+		<select id="selectEmpListCount" parameterClass="pageOption"  resultClass="int">
+	        select count(*)
+	        from employee e, dept d
+	        where e.dept_id = d.dept_id
+	        <isEqual property="search" compareValue="true">
+	          <isNotEmpty property="searchField">
+	            <isNotEmpty property="searchString" prepend="and">
+	              <isEqual property="searchOper" compareValue="eq">
+	                  $searchField$ like '%' || #searchString# || '%'
+	              </isEqual>
+	              <isEqual property="searchOper" compareValue="ne">
+	                  $searchField$ not like '%' || #searchString# || '%'
+	              </isEqual>
+	            </isNotEmpty>
+	          </isNotEmpty>
+	        </isEqual>
+		</select>
+
+		<!-- 전체 사용자 목록에서 선택한 사용자들( 체크박스 체크된 )을 모두  비활성화 상태로 변경 ( 삭제 )  -->
+		<update id="updateEmpListState" parameterClass="[Ljava.lang.String;">
+			update employee
+			set state = 'INACTIVE'
+			<dynamic prepend = "where emp_id in">
+			  <iterate open="(" conjunction="," close=")">
+			    #[]#
+			  </iterate>
+			</dynamic>
+		</update>
+
+		<!-- 사용자 목록에서 선택한 사용자의  상세 내용을 보여줌  -->
+		<select id="selectEmp" parameterClass="String" resultMap="empResultMap">
+			select e.emp_name, e.emp_id, e.position, d.dept_name, e.phone, e.email, e.state, e.img_name
+			from employee e, dept d
+			where emp_id = #empId# AND e.dept_id = d.dept_id
+		</select>
+
+		<!-- 해당 사용자를 비활성화 상태로 변경 ( 사용자 삭제 ) -->
+		<update id="updateEmpState" parameterClass="string">
+			update employee set state = 'INACTIVE' where emp_id = #empId#
+		</update>
+
+		<!-- 해당 사용자를 입력한 내용으로 정보 변경 -->
+		<update id="updateEmp" parameterClass="Employee" >
+			update employee
+			set emp_name = #empName#,
+			    password = #password#,
+			    phone = #phone#,
+			    email = #email#,
+			    position = #position#,
+			    dept_id = #dept.deptId#,
+			    state = #state#,
+			    img_name = #imgName#
+			where emp_id = #empId#
+		</update>
+
+		<!-- 새로운 사용자를 등록함  -->
+		<insert id="insertEmp" parameterClass="Employee">
+			insert into EMPLOYEE (emp_id,emp_name,password,phone,email,position,dept_id
+			<isNotEmpty property="imgName">
+			  ,img_name
+			</isNotEmpty>
+			)
+			values(seq_emp_id.nextVal,#empName#,#password#,#phone#,#email#,#position#,#dept.deptId#
+			<isNotEmpty property="imgName">
+			  ,#imgName#
+			</isNotEmpty>
+			)
+		</insert>
+	  <!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
+</sqlMap>
+

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="validation">
+	<typeAlias alias="Validation" type="com.bnebit.sms.vo.Validation"/>
+	
+	<resultMap class="com.bnebit.sms.vo.Validation" id="validationMap">
+		<result column="valid_id" property="validId"/>
+		<result column="emp_id" property="employee.empId"/>
+		<result column="code" property="code"/>
+		<result column="valid_date" property="validDate"/>
+	</resultMap>
+	
+	<insert id="insert" parameterClass="java.util.HashMap">
+	   <![CDATA[
+	    insert into validation 
+	    values(seq_valid_id.nextVal, #validation.employee.empId#, #validation.code#
+	    		, sysdate + (#TIME_LIMIT#) /(24*60))
+	   ]]>
+	</insert>
+	
+	<select id="selectOne"  parameterClass="Validation" resultMap="validationMap">
+	   <![CDATA[
+	   select v.VALID_ID, v.EMP_ID, v.CODE, v.VALID_DATE
+	  from validation v
+	  where emp_id = #employee.empId#
+	  and v.VALID_DATE >= sysdate
+	  and rownum<=1
+	  order by valid_id desc
+	   ]]>
+	</select>
+</sqlMap>

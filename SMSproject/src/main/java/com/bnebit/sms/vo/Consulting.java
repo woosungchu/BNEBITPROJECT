@@ -11,6 +11,13 @@ public class Consulting implements Serializable {
 	private String content;
 	private Client client;
 	private ConsultingImg consultingImg;
+	private DailyReport dailyReport;
+	public DailyReport getDailyReport() {
+		return dailyReport;
+	}
+	public void setDailyReport(DailyReport dailyReport) {
+		this.dailyReport = dailyReport;
+	}
 	public String getConsultingId() {
 		return consultingId;
 	}
@@ -47,11 +54,14 @@ public class Consulting implements Serializable {
 	public void setConsultingImg(ConsultingImg consultingImg) {
 		this.consultingImg = consultingImg;
 	}
+
 	@Override
 	public String toString() {
 		return "Consulting [consultingId=" + consultingId + ", title=" + title + ", regDate=" + regDate + ", content="
-				+ content + ", client=" + client + ", consultingImg=" + consultingImg + "]";
+				+ content + ", client=" + client + ", consultingImg=" + consultingImg + ", dailyReport=" + dailyReport
+				+ "]";
 	}
+
 
 
 
