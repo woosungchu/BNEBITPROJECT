@@ -20,10 +20,12 @@
 		where event_date=#eventDate#
 	</select>
 	<!-- 달력에 뿌려줄 한 달의 이벤트(일정)을 모두 조회 -->
-	<select id="selectEventMonth" resultMap="eventResultMap" parameterClass="java.lang.String">
+	<select id="selectEventList" resultMap="eventResultMap">
+		<!-- select event_date, title, holiday
+		from EVENTS
+		where event_date between to_date(#eventDate#) AND add_months(to_date(#eventDate#), 1) -->
 		select event_date, title, holiday
 		from EVENTS
-		where event_date between to_date(#eventDate#) AND add_months(to_date(#eventDate#), 1)
 	</select>
 
 	<!-- DailyReport : 오늘의 이벤트 조회 -->

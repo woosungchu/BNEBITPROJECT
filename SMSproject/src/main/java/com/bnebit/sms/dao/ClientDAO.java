@@ -36,8 +36,25 @@ public class ClientDAO {
 		return (List<Client>) sqlMapClientTemplate.queryForList(nameSpace + "selectClientList", pageSet);
 	}
 
+	/**
+	 * 거래처 조회
+	 *
+	 * @param pageSet
+	 */
 	public Client selectClient(String clientId) {
-		return (Client) sqlMapClientTemplate.queryForObject(nameSpace + "selectClien", clientId);
+		return (Client) sqlMapClientTemplate.queryForObject(nameSpace + "selectClient", clientId);
+	}
+
+	public String selectClientCode(String clientCode) {
+		return (String) sqlMapClientTemplate.queryForObject(nameSpace +  "selectClientCode", clientCode);
+	}
+
+	public void insertClient(Client client) {
+		sqlMapClientTemplate.insert(nameSpace + "insertClient", client);
+	}
+
+	public void updateClient(Client client) {
+		sqlMapClientTemplate.update(nameSpace + "updateClient", client);
 	}
 
 }

@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//src/main/WebContent/WEB-INF/views/include/footer.jsp=UTF-8
+encoding//src/main/WebContent/WEB-INF/views/main/index/indexSalesman.jsp=UTF-8
 encoding//src/main/WebContent/WEB-INF/views/welcome/welcomebody.jsp=UTF-8
 encoding//src/main/java=UTF-8
 encoding//src/test/java=UTF-8

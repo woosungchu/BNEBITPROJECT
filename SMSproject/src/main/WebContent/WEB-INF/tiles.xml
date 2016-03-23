@@ -19,11 +19,40 @@
 		<put-attribute name="menu" value="/WEB-INF/views/admin/layout/sideMenu3.jsp"/>
 		<put-attribute name="body" value="/WEB-INF/views/admin/layout/body.jsp"/>
 	</definition>
+
+	<!-- client용  -->
+    <definition name="client/*" template="/WEB-INF/views/client_layout.jsp">
+        <put-attribute name="title" value="FrameworkOnly | Apache Tiles 3 + Spring 4 MVC"></put-attribute>
+        <put-attribute name="stylecss" value="/WEB-INF/views/include/stylecss.jsp"></put-attribute>
+        <put-attribute name="header" value="/WEB-INF/views/include/header.jsp"></put-attribute>
+        <put-attribute name="sidebar" value="/WEB-INF/views/include/sidebar.jsp"></put-attribute>
+        <put-attribute name="body1" value="/WEB-INF/views/main/client/{1}.jsp"></put-attribute>
+        <put-attribute name="body2" value="/WEB-INF/views/main/client/clientList.jsp"></put-attribute>
+        <put-attribute name="footer" value="/WEB-INF/views/include/footer.jsp"></put-attribute>
+        <put-attribute name="scriptjs" value="/WEB-INF/views/include/scriptjs.jsp"></put-attribute>
+    </definition>
+
+    <!-- weekly용  -->
+    <definition name="weekly.definition" template="/WEB-INF/views/weekly_layout.jsp">
+        <put-attribute name="title" value="FrameworkOnly | Apache Tiles 3 + Spring 4 MVC"></put-attribute>
+        <put-attribute name="stylecss" value="/WEB-INF/views/include/stylecss.jsp"></put-attribute>
+        <put-attribute name="header" value="/WEB-INF/views/include/header.jsp"></put-attribute>
+        <put-attribute name="sidebar" value="/WEB-INF/views/include/sidebar.jsp"></put-attribute>
+        <put-attribute name="body1" value=""></put-attribute>
+        <put-attribute name="body2" value="/WEB-INF/views/main/calendar/viewCalendarPlan.jsp"></put-attribute>
+        <put-attribute name="footer" value="/WEB-INF/views/include/footer.jsp"></put-attribute>
+        <put-attribute name="scriptjs" value="/WEB-INF/views/include/scriptjs.jsp"></put-attribute>
+    </definition>
+
+  <definition name="weekly/*" extends="weekly.definition">
+		<put-attribute name="body1" value="/WEB-INF/views/main/weekly/{1}.jsp"/>
+	</definition>
+
 	<!-- 위에 있는 것이 우선순위가 더 높음 -->
 	<definition name="admin/*" extends="admin.definition">
 		<put-attribute name="body" value="/WEB-INF/views/admin/{1}.jsp"/>
 	</definition>
-	
+
 	<!-- Default -->
 	<definition name="*/*" extends="base.definition">
 		<put-attribute name="body" value="/WEB-INF/views/main/{1}/{2}.jsp"/>

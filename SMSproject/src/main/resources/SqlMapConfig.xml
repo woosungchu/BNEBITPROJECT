@@ -19,4 +19,6 @@
 	<sqlMap resource="dailyPlan.xml"/>
 	<sqlMap resource="event.xml"/>
 	<sqlMap resource="plan.xml"/>
+	<sqlMap resource="dept.xml"/>
+	<sqlMap resource="message.xml"/>
 </sqlMapConfig>

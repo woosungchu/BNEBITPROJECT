@@ -30,7 +30,7 @@
 	  <![CDATA[
 	   select e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*
 	   from employee e inner join dept d on e.dept_id = d.dept_id
-	   where e.email = #email# and e.password = #password#
+	   where e.email = #email# and e.password = #password# and  e.state = 'ACTIVE'
 	  ]]>
 	 </select>
 	 <select id="selectEmployeeByEmailName" parameterClass="Employee" resultMap="empMap">
@@ -48,6 +48,14 @@
 		  where emp_id = #empId#
 	   ]]>
 	  </update>
+	  
+	  <select id="selectEmployeeByDept" parameterClass="java.lang.String" resultMap="empMap">
+	    <![CDATA[
+	      select  e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.* 
+	   from employee e inner join dept d on e.DEPT_ID = d.DEPT_ID 
+	   where e.dept_id = #deptId# 
+	    ]]>
+	   </select>
 
 	  <!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 	  <!-- 전체 사용자 목록을 보여줌  -->
@@ -65,6 +73,7 @@
 
 		<resultMap id="empResultMap" class="Employee" extends="empListResultMap">
 			<result property="imgName" column="img_name"/>
+			<result property="dept.deptId" column="dept_id"/>
 		</resultMap>
 
 		<!-- 전체 사용자의 목록을 보여줌  -->
@@ -129,7 +138,7 @@
 
 		<!-- 사용자 목록에서 선택한 사용자의  상세 내용을 보여줌  -->
 		<select id="selectEmp" parameterClass="String" resultMap="empResultMap">
-			select e.emp_name, e.emp_id, e.position, d.dept_name, e.phone, e.email, e.state, e.img_name
+			select e.emp_name, e.emp_id, e.position, d.dept_id, d.dept_name, e.phone, e.email, e.state, e.img_name
 			from employee e, dept d
 			where emp_id = #empId# AND e.dept_id = d.dept_id
 		</select>
@@ -166,6 +175,11 @@
 			</isNotEmpty>
 			)
 		</insert>
+
+		<!-- 모든 사용자 email을 불러옴 ( 새로운 사용자 등록 시 중복 체크 용 )  -->
+		<select id="selectEmpEmailList" resultClass="String">
+			select email from employee
+		</select>
 	  <!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 </sqlMap>
 

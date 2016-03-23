@@ -6,6 +6,34 @@
 	<!-- alias -->
 	<typeAlias alias="consulting"  type="com.bnebit.sms.vo.Consulting"/>
 	<typeAlias alias="consultingImg"  type="com.bnebit.sms.vo.ConsultingImg"/>
+	<resultMap class="consulting" id="contractMap">
+		<result column="client_name" property="client.clientName"/>
+		<result column="second_name" property="client.secondName"/>
+		<result column="ceo" property="client.ceo"/>
+		<result column="dept_name" property="dailyReport.employee.dept.deptName"/>
+		<result column="position" property="dailyReport.employee.position"/>
+		<result column="emp_name" property="dailyReport.employee.empName"/>
+		<result column="phone" property="client.phone"/>
+		<result column="address" property="client.address"/>
+	</resultMap>
+		
+	<select id="selectContract" parameterClass="java.util.HashMap" resultMap="contractMap">
+		<![CDATA[
+		select cl.CLIENT_NAME, cl.SECOND_NAME, cl.CEO, d.DEPT_NAME, 
+		e.POSITION, e.EMP_NAME, cl.PHONE, cl.ADDRESS
+	       from consulting co inner join daily_report dr
+	       on co.DAILY_REPORT_ID = dr.DAILY_REPORT_ID
+	       inner join client cl 
+	       on cl.client_id = co.client_id
+	       inner join employee e
+	       on e.emp_id = dr.emp_id
+	       inner join dept d
+	       on e.dept_id = d.dept_id
+	       where co.rowid in (select max(rowid) from consulting group by CLIENT_ID)
+	         and e.emp_id = #empId#  and rownum <= #rownum#
+	       order by consulting_id desc
+	       ]]>
+	</select>
 
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>

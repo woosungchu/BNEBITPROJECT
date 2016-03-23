@@ -1,8 +1,9 @@
+<!DOCTYPE html>
+<!-- <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> -->
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <c:set var="contextPath" value="${pageContext.request.contextPath}"></c:set>
 <html>
 	<head>
@@ -11,6 +12,9 @@
 		<link href='https://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
 		<script src="${contextPath}/assets/js/jquery-2.2.0.js" type="text/javascript"></script>
 		<script src="${contextPath}/assets/js/jquery.cookie.js"></script>
+		<script type="text/javascript">
+		var contextPath = '${contextPath}';
+		</script>
 		<style type="text/css">
 			#body {
 				background: url('${contextPath}/assets/image/adminBodyBackGround.jpg') no-repeat;

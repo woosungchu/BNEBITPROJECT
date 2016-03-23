@@ -11,7 +11,7 @@
 		<result property="type" column="type"/>
 		<result property="dailyPlan.planDate" column="plan_date"/>
 	</resultMap>
-
+	
 	<!-- 계획 조회 -->
 	<select id="selectPlan" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="planResultMap">
 		select p.plan_id, p.content, p.type, d.plan_date
@@ -20,6 +20,7 @@
     	     AND d.daily_plan_id=p.daily_plan_id
            AND w.emp_id=#weeklyPlan.employee.empId#
            AND d.plan_date=#planDate#
+        order by p.plan_id
 	</select>
 	<!-- 계획 삽입 -->
 	<insert id="insertPlan" parameterClass="com.bnebit.sms.vo.Plan">
@@ -34,7 +35,23 @@
 		delete from PLAN
 		where plan_id=#planId#
 	</insert>
-
+	
+	<update id="updateType" parameterClass="java.util.HashMap">
+		update PLAN
+			set type = #checked#
+			where plan_id = #planId#
+	</update>
+	
+	<select id="selectTodayPlan" parameterClass="java.lang.String" resultMap="planResultMap">
+		select p.plan_id, p.content, p.type, dp.PLAN_DATE
+		from plan p inner join daily_plan dp
+		on p.daily_plan_id = dp.DAILY_PLAN_ID
+		inner join weekly_plan wp
+		on dp.weekly_plan_id = wp.weekly_plan_id
+		where dp.PLAN_DATE = trunc(sysdate)
+		and emp_id = #empId#
+	</select>
+	
 </sqlMap>
 
 

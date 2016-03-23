@@ -7,9 +7,7 @@ $(document).ready(function(){
 			success : function(result){
 				$('#RSAModulus').val(result.RSAModulus);
 				$('#RSAExponent').val(result.RSAExponent);
-				
-				console.log($('#RSAExponent').val());
-				
+
 				$('#userInfoModal').modal('hide');
 				$('#changePwdModal').modal('show');
 			}
@@ -25,41 +23,58 @@ $(document).ready(function(){
 			event.preventDefault();
 			return false;
 		}
-		
+
 		var rsa = new RSAKey();
 		rsa.setPublic($('#RSAModulus').val(), $("#RSAExponent").val());
 		cur = rsa.encrypt(cur);
-		pwd2 = rsa.encrypt(pwd2); 
+		pwd2 = rsa.encrypt(pwd2);
 		$('#securedCurrentPwd').val(cur);
 		$('#securedNewPwd').val(pwd2);
 	})
-	
+
 	function checkParemeterExists(){
 	   var fullQString = window.location.search.substring(1);
 	   var paramCount = 0;
 	   var queryStringComplete = "?";
-	
+
 	   if(fullQString.length > 0){
 	       paramArray = fullQString.split("&");
-	       
+
 	       for (i=0;i<paramArray.length;i++){
 	         currentParameter = paramArray[i].split("=");
-	         if(currentParameter[0] === 'MOD_PWD_RESULT'){
-	        	 if(currentParameter[1] === 'WRONG_PWD' ){
-	        		 $('#btnChangePwdModal').click();
+	         if(currentParameter[0] === 'RESULT'){
+	        	 switch (currentParameter[1]) {
+				case 'PWD_SUCCESS':
+					alert("비밀번호가 성공적으로 변경되었습니다");
+					break;
+				case 'WRONG_PWD':
+					$('#btnChangePwdModal').click();
 	        		 alert("비밀번호가 맞지 않습니다");
-	        	 }else{
-	        		 alert("비밀번호가 성공적으로 변경되었습니다");
-	        	 }
-	        	 return true;
+					break;
+				case 'IMG_SUCCESS':
+					$newImg = $('img[alt=ProfileImg]');
+					$newImg.attr('src',$newImg.attr('src')+'?'+ new Date().getTime());
+//					$('#UserInfo').click(); //안먹힘
+					break;
+				}
+
+	        	return true;
 	         }
 	       }
 	   }
 	}
 
+	$(document).on('change', '.btn-file :file', function() {
+	      $('#modImgForm').submit();
+	});
+
 	function init(){
 		checkParemeterExists();
 	}
-	
+
 	init();
 });
+
+//file input
+
+

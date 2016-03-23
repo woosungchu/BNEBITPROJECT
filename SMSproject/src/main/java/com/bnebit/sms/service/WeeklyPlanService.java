@@ -1,9 +1,12 @@
 package com.bnebit.sms.service;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,7 @@ import com.bnebit.sms.dao.EventDAO;
 import com.bnebit.sms.dao.PlanDAO;
 import com.bnebit.sms.dao.WeeklyPlanDAO;
 import com.bnebit.sms.vo.DailyPlan;
+import com.bnebit.sms.vo.Dept;
 import com.bnebit.sms.vo.Employee;
 import com.bnebit.sms.vo.Event;
 import com.bnebit.sms.vo.Plan;
@@ -32,22 +36,69 @@ public class WeeklyPlanService {
 	@Autowired
 	private ModelAndView mav;
 
-
+	// 페이지 전환 계산 메서드 => 최대 3개의 페이지 선택가능!!
+	public HashMap<String, Integer> pageCalculator(int cnt, int rownum){
+		int begin=1;
+		int end=(cnt-1)/10+1;
+		if(cnt>30){
+			if(rownum>10){
+				if((cnt-rownum)<=10){
+					begin=(rownum/10)-1;
+				}else if((cnt-rownum)<=20){
+					begin=(rownum/10);
+				}else{
+					begin=(rownum/10);
+					if((rownum/10+2) < cnt/3){
+						end=(rownum/10+2);
+					}else{
+						end=(cnt-1)/10+1;
+					}
+				}
+			}else{
+				end=3;
+			}
+		}
+		HashMap<String, Integer>map=new HashMap<String, Integer>();
+		map.put("begin", begin);
+		map.put("end", end);
+		return map;
+	}
 	/*
 	 * 한 사원이 작성한 모든 주간계획을 리스트로 조회
 	 * empId가 일치하는 모든 주간계획을 불러온다.
 	 * ModelAndView : ArrayList<WeeklyPlan>
 	 * */
-	public ModelAndView weeklyListEmp(String empId, int rownum)throws Exception{
-		//Employee employee=(Employee) session.getAttribute("LOGIN_USER");
+	public ModelAndView weeklyListEmp(HttpSession session, String empId, int rownum)throws Exception{
+
+		Employee employee=(Employee)session.getAttribute("LOGIN_USER");
+		//Calendar
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+
+		//Weekly
 		ArrayList<WeeklyPlan> weeklyList=weeklyPlanDAO.selectWeeklyPlanListEmp(empId, rownum);
+		int cnt=weeklyPlanDAO.selectWeeklyListEmpCount(empId);
+		HashMap<String, Integer> map=pageCalculator(cnt, rownum);
+		int end=map.get("end");
+		int begin=map.get("begin");
+		mav.addObject("end", end);
+		mav.addObject("begin", begin);
+		mav.addObject("rownum", rownum);
+		mav.addObject("count",cnt);
 		mav.addObject("weeklyList", weeklyList);
 		mav.addObject("page", "weeklyListEmp");
-		//if("Manager".equals(employee.getPosition())){
-		//	mav.setViewName("weekly/viewWeeklyListManager");
-		//}else{
-			mav.setViewName("main/weekly/viewWeeklyList");
-		//}
+		mav.addObject("LOGIN_USER", employee);
+		if("Manager".equals(employee.getPosition())){
+			ArrayList<DailyPlan> dailyPlanList=weeklyPlanDAO.selectCalendarManager(employee.getDept().getDeptId());
+			mav.addObject("dailyPlanList", dailyPlanList);
+			mav.setViewName("weekly/viewWeeklyListManager");
+		}else{
+			ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(empId);
+			String empName=planList.get(0).getDailyPlan().getWeeklyPlan().getEmployee().getEmpName();
+			mav.addObject("empName", empName);
+			mav.addObject("planList", planList);
+			mav.setViewName("weekly/viewWeeklyList");
+		}
+		mav.addObject("eventList", eventList);
 		return mav;
 	}
 	/*
@@ -55,11 +106,29 @@ public class WeeklyPlanService {
 	 * deptId가 일치하는 모든 주간계획을 불러온다.
 	 * ModelAndView : ArrayList<WeeklyPlan>
 	 * */
-	public ModelAndView weeklyList(String deptId, int rownum)throws Exception{
+	public ModelAndView weeklyList(HttpSession session, String deptId, int rownum)throws Exception{
+
+		Employee employee=(Employee)session.getAttribute("LOGIN_USER");
+		//Calendar
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<DailyPlan> dailyPlanList=weeklyPlanDAO.selectCalendarManager(deptId);
+		mav.addObject("eventList", eventList);
+		mav.addObject("dailyPlanList", dailyPlanList);
+
+		//Weekly
 		ArrayList<WeeklyPlan> weeklyList=weeklyPlanDAO.selectWeeklyPlanListManager(deptId, rownum);
+		int cnt=weeklyPlanDAO.selectWeeklyListCount(deptId);
+		HashMap<String, Integer> map=pageCalculator(cnt, rownum);
+		int end=map.get("end");
+		int begin=map.get("begin");
+		mav.addObject("end", end);
+		mav.addObject("begin", begin);
+		mav.addObject("rownum", rownum);
+		mav.addObject("count", cnt);
 		mav.addObject("weeklyList", weeklyList);
 		mav.addObject("page", "weeklyList");
-		mav.setViewName("main/weekly/viewWeeklyListManager");
+		mav.addObject("LOGIN_USER", employee);
+		mav.setViewName("weekly/viewWeeklyListManager");
 		return mav;
 	}
 	/*
@@ -67,9 +136,36 @@ public class WeeklyPlanService {
 	 * WeeklyPlan에 저장된 deptId와 monday가 일치하는 모든 주간계획을 불러온다.
 	 * ModelAndView : ArrayList<WeeklyPlan>
 	 * */
-	public ModelAndView weeklyListWeek(WeeklyPlan weeklyPlan, int rownum)throws Exception{
-		ArrayList<WeeklyPlan> weeklyList=weeklyPlanDAO.selectWeeklyPlanListWeek(weeklyPlan, rownum);
+	public ModelAndView weeklyListWeek(HttpSession session, String deptId, String monday, int rownum)throws Exception{
+		Employee employee=(Employee) session.getAttribute("LOGIN_USER");
+
+		//Calendar
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<DailyPlan> dailyPlanList=weeklyPlanDAO.selectCalendarManager(deptId);
+		mav.addObject("eventList", eventList);
+		mav.addObject("dailyPlanList", dailyPlanList);
+
+		ArrayList<WeeklyPlan> weeklyList=weeklyPlanDAO.selectWeeklyPlanListWeek(deptId, monday, rownum);
+		WeeklyPlan weeklyPlan=new WeeklyPlan();
+		weeklyPlan.setMonday(monday);
+		Employee emp=new Employee();
+		Dept dept=new Dept();
+		dept.setDeptId(deptId);
+		emp.setDept(dept);
+		weeklyPlan.setEmployee(emp);
+		int cnt=weeklyPlanDAO.selectWeeklyListWeekCount(weeklyPlan);
+		HashMap<String, Integer> map=pageCalculator(cnt, rownum);
+		int end=map.get("end");
+		int begin=map.get("begin");
+		mav.addObject("end", end);
+		mav.addObject("begin", begin);
+		mav.addObject("rownum", rownum);
+		mav.addObject("count", cnt);
+		mav.addObject("monday", monday);
 		mav.addObject("weeklyList", weeklyList);
+		mav.addObject("page", "weeklyListWeek");
+		mav.addObject("LOGIN_USER", employee);
+		mav.setViewName("weekly/viewWeeklyListManager");
 		return mav;
 	}
 	/*
@@ -81,14 +177,18 @@ public class WeeklyPlanService {
 	 * 조회하는 사람이 팀장이면 checked를 1로 변경
 	 * ModelAndView : WeeklyPlan, ArrayList<DailyPlan>, HashMap<String, ArrayList<Plan>>
 	 * */////////////////////////////////////////////////////////////////////////////////////////////
-	public ModelAndView viewWeeklyPlan(String weeklyPlanId) throws Exception {
-		//Employee employee=(Employee) session.getAttribute("LOGIN_USER");
+	public ModelAndView viewWeeklyPlan(HttpSession session, String weeklyPlanId) throws Exception {
+		Employee employee=(Employee) session.getAttribute("LOGIN_USER");
+
 		WeeklyPlan weekly=weeklyPlanDAO.selectWeeklyPlan(weeklyPlanId);
 		DailyPlan dailyPlan=new DailyPlan();
 		dailyPlan.setWeeklyPlan(weekly);
 
+		//Calendar
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+
 		//월~금의 dailyPlan을 저장할 객체 : dailyPlanList
-		ArrayList<DailyPlan> dailyPlanList=new ArrayList<DailyPlan>();
+		ArrayList<DailyPlan> dailyPlanSalesList=new ArrayList<DailyPlan>();
 		//weeklyPlan에 저장된 monday를 이용해서 dailyPlan에 들어갈 날짜 찾기
 		DateFormat format=new SimpleDateFormat("yy/MM/dd");
 		Date date=format.parse(weekly.getMonday());
@@ -97,7 +197,7 @@ public class WeeklyPlanService {
 			dailyPlan.setPlanDate(dateString);
 			DailyPlan daily=dailyPlanDAO.selectDailyPlan(dailyPlan);
 			//dailyPlanList에 dailyPlan 추가시키기
-			dailyPlanList.add(daily);
+			dailyPlanSalesList.add(daily);
 
 			// 하루 미루기
 			long time=date.getTime();
@@ -105,14 +205,24 @@ public class WeeklyPlanService {
 			date.setTime(time);
 		}
 
-		mav.addObject("dailyPlanList", dailyPlanList);
+		mav.addObject("dailyPlanSalesList", dailyPlanSalesList);
 		mav.addObject("weeklyPlan", weekly);
 		WeeklyPlan wPlan=weeklyPlanDAO.selectWeeklyETC(weeklyPlanId);
 		//팀장일때는 조회시 checked를 1로 변경
-		//if("Manager".equals(employee.getPosition())){
+		if("Manager".equals(employee.getPosition())){
+			ArrayList<DailyPlan> dailyPlanList=weeklyPlanDAO.selectCalendarManager(employee.getDept().getDeptId());
+			mav.addObject("dailyPlanList", dailyPlanList);
 			weeklyPlanDAO.updateWeeklyChecked1(wPlan);
-		//}
-		mav.setViewName("main/weekly/viewWeeklyPlan");
+		}else{
+			ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(employee.getEmpId());
+			String empName=planList.get(0).getDailyPlan().getWeeklyPlan().getEmployee().getEmpName();
+			mav.addObject("eventList", eventList);
+			mav.addObject("planList", planList);
+			mav.addObject("empName", empName);
+		}
+		mav.addObject("LOGIN_USER", employee);
+		mav.addObject("eventList", eventList);
+		mav.setViewName("weekly/viewWeeklyPlan");
 		return mav;
 	}
 	public ModelAndView viewPlan(String empId, String planDate) throws Exception{
@@ -148,7 +258,7 @@ public class WeeklyPlanService {
 		int wedDay=date.getDate();
 		int week;
 		if(wedDay!=1){
-			week=(wedDay-1)/7;
+			week=(wedDay-1)/7 + 1;
 		}else{
 			week=1;
 		}
@@ -165,7 +275,18 @@ public class WeeklyPlanService {
 	 * 일정이 없으면 그 날에 Plan을 넣을 수 있음
 	 * ModelAndView : ArrayList<Event>
 	 * */
-	public ModelAndView inputWeeklyPlan(String empId, String monday)throws Exception{
+	public ModelAndView inputWeeklyPlan(HttpSession session, String empId, String monday)throws Exception{
+		Employee employee=(Employee)session.getAttribute("LOGIN_USER");
+		//Calendar
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(empId);
+		String empName=planList.get(0).getDailyPlan().getWeeklyPlan().getEmployee().getEmpName();
+		mav.addObject("LOGIN_USER", employee);
+		mav.addObject("eventList", eventList);
+		mav.addObject("planList", planList);
+		mav.addObject("empName", empName);
+
+		//Weekly
 		WeeklyPlan weeklyPlan=new WeeklyPlan();
 		Employee emp=new Employee();
 		emp.setEmpId(empId);
@@ -182,8 +303,6 @@ public class WeeklyPlanService {
 		WeeklyPlan weekly=weeklyPlanDAO.selectWeeklyETC(seqWeeklyId);
 		dailyPlan.setWeeklyPlan(weekly);
 
-		// 월~금의 event를 담을 객체 : eventList
-		ArrayList<Event>eventList=new ArrayList<Event>();
 		// 생성한 Daily Plan을 저장할 객체 : dailyPlanList
 		ArrayList<DailyPlan> dailyPlanList=new ArrayList<DailyPlan>();
 		//weeklyPlan에 저장된 monday를 이용해서 dailyPlan에 들어갈 날짜 찾기
@@ -214,16 +333,26 @@ public class WeeklyPlanService {
 		mondayString+=format.format(date);
 		weeklyPlan.setMonday(mondayString);
 		mav.addObject("weeklyPlan", weeklyPlan);		// deptName, empName, title, monday
-		mav.addObject("eventList", eventList);
 		mav.addObject("dailyPlanList", dailyPlanList);
-		mav.setViewName("main/weekly/inputWeeklyPlan");
+		mav.setViewName("weekly/inputWeeklyPlan");
 		return mav;
 	}
 	/*
 	 * 주간계획 수정
 	 * */
-	public ModelAndView editWeeklyPlan(String weeklyPlanId)throws Exception{
-		//Employee employee=(Employee) session.getAttribute("LOGIN_USER");
+	public ModelAndView editWeeklyPlan(HttpSession session, String weeklyPlanId)throws Exception{
+		Employee employee=(Employee) session.getAttribute("LOGIN_USER");
+
+		//Calendar
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(employee.getEmpId());
+		String empName=planList.get(0).getDailyPlan().getWeeklyPlan().getEmployee().getEmpName();
+		mav.addObject("LOGIN_USER", employee);
+		mav.addObject("eventList", eventList);
+		mav.addObject("planList", planList);
+		mav.addObject("empName", empName);
+
+		//Weekly
 		WeeklyPlan weekly=weeklyPlanDAO.selectWeeklyPlan(weeklyPlanId);
 		DailyPlan dailyPlan=new DailyPlan();
 		dailyPlan.setWeeklyPlan(weekly);
@@ -246,9 +375,12 @@ public class WeeklyPlanService {
 			date.setTime(time);
 		}
 
+		WeeklyPlan wPlan=weeklyPlanDAO.selectWeeklyETC(weeklyPlanId);
+		weeklyPlanDAO.updateWeeklyChecked0(wPlan);
+
 		mav.addObject("dailyPlanList", dailyPlanList);
 		mav.addObject("weeklyPlan", weekly);
-		mav.setViewName("main/weekly/inputWeeklyPlan");
+		mav.setViewName("weekly/inputWeeklyPlan");
 		return mav;
 	}
 	/*
@@ -262,11 +394,21 @@ public class WeeklyPlanService {
 		weekly.setEmployee(emp);
 		weekly.setMonday(monday);
 		String weeklyPlanId=weeklyPlanDAO.selectWeeklyPlanByEmpMonday(weekly);
-		if(weeklyPlanId==null){
-			mav.setViewName("redirect:/inputWeeklyPlan?empId="+empId+"&monday="+monday);
-		}else{
-			mav.setViewName("redirect:/editWeeklyPlan?weeklyPlanId="+weeklyPlanId);
-		}
+
+		Date nowDate=new Date();
+		Date monDate=new Date(monday);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        if(nowDate.compareTo(monDate)<0){
+        	//입력 및 수정
+        	if(weeklyPlanId==null){
+        		mav.setViewName("redirect:/inputWeeklyPlan?empId="+empId+"&monday="+monday);
+        	}else{
+        		mav.setViewName("redirect:/editWeeklyPlan?weeklyPlanId="+weeklyPlanId);
+        	}
+        }else{
+        	//조회
+        	mav.setViewName("redirect:/viewWeeklyPlan?weeklyPlanId="+weeklyPlanId);
+        }
 		return mav;
 	}
 	/*
@@ -297,39 +439,39 @@ public class WeeklyPlanService {
 	 * 각각의 DailyPlan에 목표금액을 추가한다.
 	 * weeklyPlan 에서 날짜와 empId를 가져와서  ?? empId는 왜?
 	 * ModelAndView : -
-	 * */
-	public ModelAndView saveWeeklyPlan(WeeklyPlan weeklyPlan, HashMap<String, Long> sales)throws Exception{
-		// 매개변수로 Weekly Plan 받아서 날짜로 Daily Plan 찾기
-		String monday=weeklyPlan.getMonday();
+	 * */			// weeklyPlan => monday, empId,
+	public ModelAndView saveWeeklyPlan(String monday, ArrayList<DailyPlan> dailyPlanList, HttpSession session)throws Exception{
+		Employee employee=(Employee)session.getAttribute("LOGIN_USER");
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		//Calendar
+		ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(employee.getEmpId());
+		String empName=planList.get(0).getDailyPlan().getWeeklyPlan().getEmployee().getEmpName();
+		mav.addObject("LOGIN_USER", employee);
+		mav.addObject("eventList", eventList);
+		mav.addObject("planList", planList);
+		mav.addObject("empName", empName);
 
+		//Weekly
+		WeeklyPlan weeklyPlan=new WeeklyPlan();
+		weeklyPlan.setEmployee(employee);
 		// weeklyPlan으로 empId 설정
 		DailyPlan daily=new DailyPlan();
 		daily.setWeeklyPlan(weeklyPlan);
 
-		//weeklyPlan에 저장된 monday를 이용해서 dailyPlan에 들어갈 날짜 찾기
-		DateFormat format=new SimpleDateFormat("yy/MM/dd");
-		Date date=format.parse(weeklyPlan.getMonday());
 		for(int i=0;i<5;i++){
-			String dateString=format.format(date);
-			Long salesGoal=sales.get(dateString);
-			// 목표금액이 없으면 salesGoal이 null! null 아닐때 업데이트
-			if(salesGoal!=null){
-				// planDate 설정
-				daily.setPlanDate(dateString);
-				// 그 날짜와 empId에 맞는 dailyPlanId 찾기
-				String dailyPlanId=dailyPlanDAO.selectDailyPlanId(daily);
-				DailyPlan dailyPlan=new DailyPlan();
-				// dailyPlanId와 salesGoal으로 dailyPlan 업데이트하기
-				dailyPlan.setDailyPlanId(dailyPlanId);
-				dailyPlan.setSalesGoal(salesGoal);
+			DailyPlan dailyPlanSales=dailyPlanList.get(i);
+			Long salesGoal=dailyPlanSales.getSalesGoal();
+			daily.setPlanDate(dailyPlanSales.getPlanDate());
 
-				dailyPlanDAO.updateDailyPlanSales(dailyPlan);
-			}
-			// 하루 미루기
-			long time=date.getTime();
-			time+=24*60*60*1000;
-			date.setTime(time);
+			// 그 날짜와 empId에 맞는 dailyPlanId 찾기
+			String dailyPlanId=dailyPlanDAO.selectDailyPlanId(daily);
+			daily.setDailyPlanId(dailyPlanId);
+			daily.setSalesGoal(salesGoal);
+
+			dailyPlanDAO.updateDailyPlanSales(daily);
+
 		}
+		mav.setViewName("redirect:/weeklyListEmp?empId="+employee.getEmpId()+"&rownum=0");
 		return mav;
 	}
 	/*
@@ -338,12 +480,102 @@ public class WeeklyPlanService {
 	 * 달력에서 한 달의 모든 event와 plan을 가지고 있는 사원의 이름을 중복되지않게 달력에 출력
 	 * ModelAndView : ArrayList<Event>, ArrayList<DailyPlan>
 	 * */
-	public ModelAndView calendarLeader(DailyPlan dailyPlan)throws Exception{
+	public ModelAndView calendarLeader(String deptId)throws Exception{
 		//deptId, planDate
-		ArrayList<Event> eventList=eventDAO.selectEventMonth(dailyPlan.getPlanDate());
-		ArrayList<DailyPlan> dailyPlanList=weeklyPlanDAO.selectCalendarManager(dailyPlan);
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<DailyPlan> dailyPlanList=weeklyPlanDAO.selectCalendarManager(deptId);
 		mav.addObject("eventList", eventList);
 		mav.addObject("dailyPlanList", dailyPlanList);
+		mav.setViewName("calendar/viewCalendarManager");
+		return mav;
+	}
+	public boolean dayCompare(String date) throws Exception{
+		Date d=new Date();
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		Date dateObject=sdf.parse(date);
+		int dayOfWeek=dateObject.getDay();
+		int dayOfMonth=dateObject.getDate();
+		switch(dayOfWeek){
+		case 1:
+			dateObject.setDate(dayOfMonth);
+			break;
+		case 2:
+			dateObject.setDate(dayOfMonth-1);
+			break;
+		case 3:
+			dateObject.setDate(dayOfMonth-2);
+			break;
+		case 4:
+			dateObject.setDate(dayOfMonth-3);
+			break;
+		case 5:
+			dateObject.setDate(dayOfMonth-4);
+			break;
+		}
+		if(d.compareTo(dateObject)<0){
+			return true;
+		}
+		return false;
+	}
+	/*
+	 * 해당 날짜에 plan을 넣을 수 있는지 확인
+	 * */
+	public ModelAndView checkDailyPlan(String empId, String planDate) throws Exception{
+		DailyPlan dailyPlan=new DailyPlan();
+		WeeklyPlan weeklyPlan=new WeeklyPlan();
+		Employee employee=new Employee();
+		employee.setEmpId(empId);
+		weeklyPlan.setEmployee(employee);
+		dailyPlan.setWeeklyPlan(weeklyPlan);
+		dailyPlan.setPlanDate(planDate);
+		String dailyPlanId=dailyPlanDAO.selectIdByEmpDate(dailyPlan);
+		if(dailyPlanId==null){
+			mav.addObject("JSON", false);
+		}else{
+			Event event=eventDAO.selectEvent(planDate);
+			if(event==null){
+				if(dayCompare(planDate)==true){
+					mav.addObject("JSON", true);
+				}else{
+					mav.addObject("JSON", false);
+				}
+			}else{
+				mav.addObject("JSON", false);
+			}
+		}
+		mav.setViewName("jsonView");
+		return mav;
+	}
+	/*
+	 * 달력 클릭시 이벤트 등록
+	 * */
+	public ModelAndView inputPlanCalendar(String empId, String planDate, String content) throws Exception{
+		DailyPlan dailyPlan=new DailyPlan();
+		WeeklyPlan weeklyPlan=new WeeklyPlan();
+		Employee employee=new Employee();
+		employee.setEmpId(empId);
+		weeklyPlan.setEmployee(employee);
+		dailyPlan.setWeeklyPlan(weeklyPlan);
+		dailyPlan.setPlanDate(planDate);
+		String dailyPlanId=dailyPlanDAO.selectIdByEmpDate(dailyPlan);
+		Plan plan=new Plan();
+		DailyPlan daily=new DailyPlan();
+		daily.setDailyPlanId(dailyPlanId);
+		plan.setDailyPlan(daily);
+		plan.setType("0");
+		plan.setContent(content);
+		planDAO.insertPlan(plan);
+		mav.setViewName("redirect:/calendarPlan?empId="+empId);
+		return mav;
+	}
+	public ModelAndView calendarGetPlan(String empId) throws Exception{
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(empId);
+		HashMap<String, Object>map=new HashMap<String, Object>();
+		map.put("Event", eventList);
+		map.put("Plan", planList);
+		mav.addObject("JSON", map);
+		mav.setViewName("jsonView");
 		return mav;
 	}
 	/*
@@ -353,11 +585,16 @@ public class WeeklyPlanService {
 	 * Event테이블에서 해당하는 달의 이벤트가 있으면 가져화서 달력에 출력
 	 * ModelAndView : ArrayList<Event>, ArrayList<Plan>
 	 * */
-	public ModelAndView calendarPlan(DailyPlan dailyPlan)throws Exception{
-		ArrayList<Event> eventList=eventDAO.selectEventMonth(dailyPlan.getPlanDate());
-		ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(dailyPlan);
+	public ModelAndView calendarPlan(HttpSession session, String empId)throws Exception{
+		Employee employee=(Employee)session.getAttribute("LOGIN_USER");
+		ArrayList<Event> eventList=eventDAO.selectEventList();
+		ArrayList<Plan> planList=weeklyPlanDAO.selectCalendarPlan(empId);
+		String empName=planList.get(0).getDailyPlan().getWeeklyPlan().getEmployee().getEmpName();
+		mav.addObject("LOGIN_USER", employee);
 		mav.addObject("eventList", eventList);
 		mav.addObject("planList", planList);
+		mav.addObject("empName", empName);
+		mav.setViewName("calendar/viewCalendarPlan");
 		return mav;
 	}
 }

@@ -4,24 +4,25 @@
 <div class="container-fluid">
 	<div class="row-fluid">
 		<div class="col-lg-4 col-md-3 col-sm-2 hidden-xs login-side"></div>
-		<div id="content-box" class="col-lg-4 col-md-6 col-sm-8 col-xs-12">
+		<div id="contentBox" class="col-lg-4 col-md-6 col-sm-8 col-xs-12">
 			<div class="row">
 				<div id="loginBox" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="row">
+					<div class="row"><!-- 상단 row -->
 						<div id="helpBtn">
 							<i class="fa fa-question-circle" 
 								data-container="body" data-toggle="modal" data-target="#helpModal">
 							</i>
 						</div>
-						<c:choose>
-						   	<c:when test="${not empty RECENT_USER.imgName}">
-	<%-- 							<img src="${RECENT_USER.imgName}" alt="NOIMAGE" class="img-circle hidden-xs"> --%>
-									<img src="/assets/image/noname.png" alt="NOIMAGE" class="img-circle hidden-xs">
-						   	</c:when>
-						   	<c:otherwise>
-							    <img src="/assets/image/noname.png" alt="NOIMAGE" class="img-circle hidden-xs">
-						  	</c:otherwise>
-						</c:choose>
+						<div id="loginImgBox">
+							<c:choose>
+							   	<c:when test="${not empty RECENT_USER.imgName}">
+									<img id="loginImg" src="/Upload/${RECENT_USER.imgName}" alt="NOIMAGE" class="img-circle hidden-xs">
+							   	</c:when>
+							   	<c:otherwise>
+								    <img src="/assets/image/noname.png" alt="NOIMAGE" class="img-circle hidden-xs">
+							  	</c:otherwise>
+							</c:choose>
+						</div>
 						<c:if test="${not empty MESSAGE}">
 							<div id="guidMsg">
 									<p>${MESSAGE}</p>
@@ -29,7 +30,7 @@
 						</c:if>
 <%-- 						<p>${RECENT_USER}</p> --%>
 					</div>
-					<div class="row">
+					<div class="row"><!-- 하단 row -->
 						<!-- Real Form -->
 						<form id="hiddenForm" action="/login" method="post" >
 							<input type="hidden" id="RSAModulus" value="${RSAModulus}" />

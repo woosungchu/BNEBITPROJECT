@@ -1,9 +1,45 @@
 @CHARSET "UTF-8";
+/* color 1, 2, 3*/
+.color-high{
+	color : white;
+	background-color: #54a0c6;
+}
+.color-standard{
+	background-color: #54c6b3;
+}
+.color-low{
+	background-color: #54c67a;
+	border-color: #54c67a;
+}
 
+
+/* btn-file */
+.btn-file {
+  position: relative;
+  overflow: hidden;
+}
+.btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  background: red;
+  cursor: inherit;
+  display: block;
+}
+input[readonly] {
+  background-color: white !important;
+  cursor: text !important;
+}
+
+/* CSS contents */
 .main_container {
-
 	height : 100%;
-
 }
 
 .header {
@@ -95,9 +131,6 @@ ul.msg_list li a .message {
 /* user end */
 
 /* searchbar */
-.search-form {
-    overflow: auto;
-}
 .search-form .form-control {
     display: inline-block;
     width: calc(100% - 100px);
@@ -117,6 +150,12 @@ ul.msg_list li a .message {
 	padding-right : 12px;
 }
 #profileImg{
-	border :2px solid #000;
-	width : 128px;
+/* 	border :2px solid #000; */
+	width : 100%;
 }
+
+.ui-autocomplete
+{
+z-index: 1051;
+}
+

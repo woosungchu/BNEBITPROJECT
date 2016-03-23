@@ -1,7 +1,8 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <nav class="navbar navbar-inverse navbar-fixed-bottom">
   <div class="container">
-     <a href="#menu-toggle" class="visible-xs btn btn-default" id="menu-toggle">First Toggle</a>
-     <a href="#menu-toggle-2" class="hidden-xs btn btn-default" id="menu-toggle-2">Second Toggle</a>
+     <a href="#menu-toggle" class="visible-xs btn btn-default" id="menu-toggle">메뉴</a>
+<!--      <a href="#menu-toggle-2" class="hidden-xs btn btn-default" id="menu-toggle-2">Second Toggle</a> -->
   </div>
 </nav>
 <style>

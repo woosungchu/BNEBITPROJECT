@@ -32,11 +32,30 @@ public class AdminReportController {
 		return mav;
 	}
 
-	/*@RequestMapping(value="/tiles/viewDailyReport", method = RequestMethod.GET)
-	public ModelAndView viewDailyReport(String dailyReportId, HttpSession session) throws SQLException {
+	@RequestMapping(value="/viewWeeklyPlan", method = RequestMethod.GET)
+	public ModelAndView viewWeeklyPlan(String weeklyPlanId, HttpSession session) throws Exception {
 		ModelAndView mav = new ModelAndView();
+		mav = service.getWeeklyPlan(weeklyPlanId, session);
 		return mav;
-	}*/
+	}
+
+	@RequestMapping(value="/viewWeeklyPlanUpdateForm", method = RequestMethod.GET)
+	public ModelAndView viewWeeklyPlanUpdateForm(String weeklyPlanId, HttpSession session) throws Exception {
+		ModelAndView mav = new ModelAndView();
+		mav = service.viewWeeklyPlanUpdateForm(weeklyPlanId);
+		return mav;
+	}
+
+	@RequestMapping(value="/checkWeeklyPlan", method = RequestMethod.GET)
+	public ModelAndView checkWeeklyPlan(String empId, String monday) throws Exception{
+		ModelAndView mav = service.checkWeeklyPlan(empId, monday);
+		return mav;
+	}
+
+	@RequestMapping(value="/inputPlan", method = RequestMethod.POST)
+	public @ResponseBody String inputPlan(String dailyPlanId, String content)throws Exception{
+		return service.inputPlan(dailyPlanId, content);
+	}
 
 	@RequestMapping(value = "/getWeeklyPlanListJsonData", method = RequestMethod.POST)
 	public @ResponseBody PageOption<Map<String, Object>> getWeeklyPlanListJsonData(PageOption<Map<String, Object>> pageOption, @RequestParam("_search") String search, HttpSession session) throws Exception {
@@ -44,7 +63,7 @@ public class AdminReportController {
 	}
 
 	@RequestMapping(value = "/deleteWeeklyPlanList", method = RequestMethod.GET)
-	public void deleteWeeklyPlanList(@RequestParam(value="ids") String[] ids) throws SQLException {
+	public void deleteWeeklyPlanList(@RequestParam(value="ids") String[] ids, HttpSession session) throws SQLException {
 		service.removeWeeklyPlanList(ids);
 	}
 
@@ -79,7 +98,7 @@ public class AdminReportController {
 	}
 
 	@RequestMapping(value = "/deleteDailyReportList", method = RequestMethod.GET)
-	public void deleteDailyReportList(@RequestParam(value="ids") String[] ids) throws SQLException {
+	public void deleteDailyReportList(@RequestParam(value="ids") String[] ids, HttpSession session) throws SQLException {
 		service.removeDailyReportList(ids);
 	}
 
@@ -113,7 +132,7 @@ public class AdminReportController {
 	}
 
 	@RequestMapping(value = "/deleteConsultingList", method = RequestMethod.GET)
-	public void deleteConsultingList(@RequestParam(value="ids") String[] ids) throws SQLException {
+	public void deleteConsultingList(@RequestParam(value="ids") String[] ids, HttpSession session) throws SQLException {
 		service.removeConsultingList(ids);
 	}
 

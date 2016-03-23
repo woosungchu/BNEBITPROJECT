@@ -2,6 +2,7 @@ package com.bnebit.sms.dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,15 @@ import com.bnebit.sms.vo.ConsultingImg;
 public class ConsultingDAO {
 	@Autowired
 	SqlMapClientTemplate sqlMapClientTemplate;
+	
+	public ArrayList<Consulting> selectContract(String empId){
+		Map<String,String> map = new HashMap<String, String>();
+		map.put("empId", empId);
+		map.put("rownum", "4");
+		ArrayList<Consulting> list =  
+				(ArrayList<Consulting>) sqlMapClientTemplate.queryForList("consulting.selectContract", map);
+		return list;
+	}
 
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	@SuppressWarnings("unchecked")

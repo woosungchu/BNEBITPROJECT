@@ -47,11 +47,11 @@ public class Message implements Serializable {
 	public void setMsgDate(String msgDate) {
 		this.msgDate = msgDate;
 	}
+
 	@Override
 	public String toString() {
 		return "Message [msgId=" + msgId + ", receiver=" + receiver + ", sender=" + sender + ", content=" + content
 				+ ", checked=" + checked + ", msgDate=" + msgDate + "]";
 	}
-
 
 }

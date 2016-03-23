@@ -2,18 +2,52 @@ package com.bnebit.sms.vo;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
 public class Client implements Serializable {
 	private static final long serialVersionUID = 124480644534369044L;
 
 	private String clientId;
+	@NotEmpty(message = "고객코드를 입력해주세요", groups = {ClientInsert.class})
 	private String clientCode;
+	@NotEmpty(message = "고객명을 입력해주세요", groups = {ClientInsert.class, ClientUpdate.class})
 	private String clientName;
+	@NotEmpty(message = "2차거래선을 입력해주세요", groups = {ClientInsert.class, ClientUpdate.class})
 	private String secondName;
+	@NotEmpty(message = "주소를 입력해주세요", groups = {ClientInsert.class, ClientUpdate.class})
 	private String address;
 	private String phone;
+	@NotEmpty(message = "대표자를 입력해주세요", groups = {ClientInsert.class, ClientUpdate.class})
 	private String ceo;
 	private int isDelete;
 	private String regDate;
+	@Pattern(regexp = "(01([0|1|6|7|8|9]))", message="전화번호 형식이 잘못되었습니다", groups = {ClientInsert.class, ClientUpdate.class})
+	private String phone1;
+	@Pattern(regexp = "([0-9]{3,4})", message="전화번호 형식이 잘못되었습니다", groups = {ClientInsert.class, ClientUpdate.class})
+	private String phone2;
+	@Pattern(regexp = "([0-9]{4})", message="전화번호 형식이 잘못되었습니다", groups = {ClientInsert.class, ClientUpdate.class})
+	private String phone3;
+
+	public String getPhone1() {
+		return phone1;
+	}
+	public String getPhone2() {
+		return phone2;
+	}
+	public String getPhone3() {
+		return phone3;
+	}
+	public void setPhone1(String phone1) {
+		this.phone1 = phone1;
+	}
+	public void setPhone2(String phone2) {
+		this.phone2 = phone2;
+	}
+	public void setPhone3(String phone3) {
+		this.phone3 = phone3;
+	}
 	public String getClientId() {
 		return clientId;
 	}
@@ -68,12 +102,19 @@ public class Client implements Serializable {
 	public void setRegDate(String regDate) {
 		this.regDate = regDate;
 	}
-	@Override
-	public String toString() {
-		return "Client [clientId=" + clientId + ", clientCode=" + clientCode + ", clientName=" + clientName
-				+ ", secondName=" + secondName + ", address=" + address + ", phone=" + phone + ", ceo=" + ceo
-				+ ", isDelete=" + isDelete + ", regDate=" + regDate + "]";
+
+	public void setPhone() {
+		this.phone = phone1 + "-" + phone2 + "-" + phone3;
 	}
 
+	public void setPhoneSplit() {
+		String[] phoneArr = phone.split("-");
+		phone1 = phoneArr[0];
+		phone2 = phoneArr[1];
+		phone3 = phoneArr[2];
+	}
+
+	public interface ClientInsert {}
+	public interface ClientUpdate {}
 
 }

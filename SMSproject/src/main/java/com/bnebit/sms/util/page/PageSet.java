@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -246,7 +248,7 @@ public class PageSet implements Serializable {
 
 	public void setPageParamMap() {
 		pageParamMap = new ConcurrentHashMap<>();
-		pageParamMap.put("selectPostList", selectPostList);
+		//pageParamMap.put("selectPostList", selectPostList);
 
 		if (StringUtils.isNotEmpty(searchKey)) {
 			pageParamMap.put("searchKey", searchKey);
@@ -307,4 +309,12 @@ public class PageSet implements Serializable {
 	}
 
 
+	public void isMobile(HttpServletRequest request) {
+        String userAgent = request.getHeader("user-agent");
+        boolean mobile1 = userAgent.matches(".*(iPhone|iPod|Android|Windows CE|BlackBerry|Symbian|Windows Phone|webOS|Opera Mini|Opera Mobi|POLARIS|IEMobile|lgtelecom|nokia|SonyEricsson).*");
+        boolean mobile2 = userAgent.matches(".*(LG|SAMSUNG|Samsung).*");
+        if(mobile1 || mobile2) {
+        	this.selectPostList = 5;
+        }
+    }
 }

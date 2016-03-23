@@ -66,6 +66,12 @@
 	          	    sortname : historyPageObject == null ? '' : historyPageObject.sidx, /* 처음 정렬될 컬럼 */
 	          		sortorder : historyPageObject == null ? 'asc' : historyPageObject.sord,  /* 정렬방법 (asc/desc) */
 					//////////////////////
+					loadError: function (jqXHR, textStatus, errorThrown) {
+						if (jqXHR.status == '406') {
+					        alert(jqXHR.responseText);
+					        location.href = contextPath + '/';
+						}
+				    },
 					beforeSelectRow: function (rowid, e) {
 	                     return $(e.target).is('input[type=checkbox]');	// 선택한 row의 셀이 checkbox 셀이어야 true 를 반환. (다른 셀공간을 클릭하여도 체크박스 체크가 되지 않도록 함)
 	                },

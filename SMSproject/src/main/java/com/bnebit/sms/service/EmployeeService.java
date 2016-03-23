@@ -1,6 +1,7 @@
 package com.bnebit.sms.service;
 
 import java.net.InetAddress;
+
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -8,6 +9,8 @@ import java.security.PrivateKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
 
@@ -20,6 +23,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.bnebit.sms.dao.EmployeeDAO;
@@ -28,6 +32,7 @@ import com.bnebit.sms.dao.ValidationDAO;
 import com.bnebit.sms.util.CryptUtil;
 import com.bnebit.sms.util.Cryptable;
 import com.bnebit.sms.util.MailUtil;
+import com.bnebit.sms.util.UploadUtil;
 import com.bnebit.sms.vo.Employee;
 import com.bnebit.sms.vo.SessionKey;
 import com.bnebit.sms.vo.Validation;
@@ -183,8 +188,6 @@ public class EmployeeService implements Cryptable{
 					empVo.setPassword(null);
 					mav.addObject("RECENT_USER",empVo);
 					log.info("RECENT_USER = " + empVo.toString());
-//					mav.setViewName("forward:/loginForm");
-//					return mav;
 				}
 			}
 		}
@@ -195,11 +198,11 @@ public class EmployeeService implements Cryptable{
 	
 	public ModelAndView logout(HttpSession session, HttpServletResponse response) {
 		session.removeAttribute("LOGIN_USER");
-		sessionDAO.delete(session.getId());
+//		sessionDAO.delete(session.getId()); // 기존로그인 이미지 활성화 위해..
 		Cookie cookie = new Cookie("JSESSIONID",null);
 		cookie.setMaxAge(0);
 		response.addCookie(cookie);
-		session.invalidate();
+		session.invalidate();//중요!
 		
 		mav.setViewName("forward:/loginForm");
 		mav.addObject("MESSAGE", "Logout Success");
@@ -210,17 +213,26 @@ public class EmployeeService implements Cryptable{
 		NetworkInterface network;
 		StringBuilder sb = null;
 		try {
-			network = NetworkInterface.getByInetAddress(InetAddress.getByName(ipAddr));
-
-			byte[] mac = network.getHardwareAddress();
-
-			sb = new StringBuilder();
-			for (int i = 0; i < mac.length; i++) {
-				sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+			Enumeration<NetworkInterface> networks =
+					NetworkInterface.getNetworkInterfaces();
+			
+			while(networks.hasMoreElements()){
+				network = networks.nextElement();
+				if(network.getHardwareAddress() != null){
+					byte[] mac = network.getHardwareAddress();
+					
+					if(mac != null){
+						sb = new StringBuilder();
+						for (int i = 0; i < mac.length; i++) {
+							sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+						}
+						break;
+					}
+				}else{
+					System.out.println("network.getHardwareAddress() == null!");
+				}
 			}
-
 		} catch (SocketException e1) {e1.printStackTrace();
-		} catch (UnknownHostException e1) {e1.printStackTrace();
 		}
 		return sb.toString();
 	}
@@ -347,13 +359,24 @@ public class EmployeeService implements Cryptable{
 			//2.update
 			employee.setPassword(cryptUtil.hashing(decryptedNewPwd));
 			employeeDAO.updatePassword(employee);
-			mav.addObject("MOD_PWD_RESULT", "SUCCESS");
+			mav.addObject("RESULT", "PWD_SUCCESS");
 		}else{
-			mav.addObject("MOD_PWD_RESULT", "WRONG_PWD");
+			mav.addObject("RESULT", "WRONG_PWD");
 		}
 		mav.setViewName("redirect:/");
 		return mav;
 		
+	}
+	
+	public ModelAndView modifyProfileImg(MultipartFile file, HttpSession session) {
+		Employee employee = (Employee) session.getAttribute("LOGIN_USER");
+		String priorImage = employee.getImgName();
+		UploadUtil.uploadHelper(file, priorImage);
+		
+		//Session, DB update가 필요 없네 .. 같은 파일명에 덮어 씌우는거니까..
+		mav.addObject("RESULT", "IMG_SUCCESS");
+		mav.setViewName("redirect:/");
+		return mav;
 	}
 
 }

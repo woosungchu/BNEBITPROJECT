@@ -1,10 +1,14 @@
 package com.bnebit.sms.controller;
 
-import java.util.HashMap;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -12,6 +16,8 @@ import com.bnebit.sms.service.WeeklyPlanService;
 import com.bnebit.sms.vo.DailyPlan;
 import com.bnebit.sms.vo.Plan;
 import com.bnebit.sms.vo.WeeklyPlan;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 @Controller
 public class WeeklyController {
@@ -23,8 +29,8 @@ public class WeeklyController {
 	 * viewWeeklyList.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="weeklyListEmp")
-	public ModelAndView weeklyListEmp(String empId, int rownum)throws Exception{
-		ModelAndView mav=weeklyService.weeklyListEmp(empId, rownum);
+	public ModelAndView weeklyListEmp(HttpSession session, String empId, int rownum)throws Exception{
+		ModelAndView mav=weeklyService.weeklyListEmp(session, empId, rownum);
 		return mav;
 	}
 	/*
@@ -32,8 +38,8 @@ public class WeeklyController {
 	 * viewWeeklyListManager.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="weeklyList")
-	public ModelAndView weeklyList(String deptId, int rownum)throws Exception{
-		ModelAndView mav=weeklyService.weeklyList(deptId, rownum);
+	public ModelAndView weeklyList(HttpSession session, String deptId, int rownum)throws Exception{
+		ModelAndView mav=weeklyService.weeklyList(session, deptId, rownum);
 		return mav;
 	}
 	/*
@@ -41,8 +47,8 @@ public class WeeklyController {
 	 * viewWeeklyListManager.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="weeklyListWeek")
-	public ModelAndView weeklyListWeek(WeeklyPlan weeklyPlan, int rownum)throws Exception{
-		ModelAndView mav=weeklyService.weeklyListWeek(weeklyPlan, rownum);
+	public ModelAndView weeklyListWeek(HttpSession session, String deptId, String monday, int rownum)throws Exception{
+		ModelAndView mav=weeklyService.weeklyListWeek(session, deptId, monday, rownum);
 		return mav;
 	}
 	/*
@@ -50,8 +56,8 @@ public class WeeklyController {
 	 * viewWeeklyPlan.jsp 페이지로 이동
 	 * */////////////////////////////////////////////////////////////////////////////////////////////
 	@RequestMapping(value="viewWeeklyPlan")
-	public ModelAndView viewWeeklyPlan(String weeklyPlanId)throws Exception{
-		ModelAndView mav = weeklyService.viewWeeklyPlan(weeklyPlanId);
+	public ModelAndView viewWeeklyPlan(HttpSession session, String weeklyPlanId)throws Exception{
+		ModelAndView mav = weeklyService.viewWeeklyPlan(session, weeklyPlanId);
 		return mav;
 	}
 	/////////////////////////////////////////////////////////ajax!!!!!!!!!!!
@@ -65,8 +71,8 @@ public class WeeklyController {
 	 * insertWeeklyPlan.jsp 페이지로 접근
 	 * *////////////////////////////////////////////////////////// 매개변수 WeeklyPlan weeklyPlan => String empId, String title, String monday
 	@RequestMapping(value="inputWeeklyPlan")
-	public ModelAndView inputWeeklyPlan(String empId, String monday)throws Exception{
-		ModelAndView mav=weeklyService.inputWeeklyPlan(empId, monday);
+	public ModelAndView inputWeeklyPlan(HttpSession session, String empId, String monday)throws Exception{
+		ModelAndView mav=weeklyService.inputWeeklyPlan(session, empId, monday);
 		return mav;
 	}
 	/*
@@ -81,8 +87,8 @@ public class WeeklyController {
 	 * 주간계획 수정
 	 * */
 	@RequestMapping(value="editWeeklyPlan")
-	public ModelAndView editWeeklyPlan(String weeklyPlanId) throws Exception{
-		ModelAndView mav=weeklyService.editWeeklyPlan(weeklyPlanId);
+	public ModelAndView editWeeklyPlan(HttpSession session, String weeklyPlanId) throws Exception{
+		ModelAndView mav=weeklyService.editWeeklyPlan(session, weeklyPlanId);
 		return mav;
 	}
 	/*
@@ -90,7 +96,7 @@ public class WeeklyController {
 	 *
 	 * */
 	@RequestMapping(value="inputPlan")
-	public @ResponseBody ModelAndView inputPlan(String dailyPlanId, String content)throws Exception{
+	public ModelAndView inputPlan(String dailyPlanId, String content)throws Exception{
 		Plan plan=new Plan();
 		DailyPlan daily=new DailyPlan();
 		daily.setDailyPlanId(dailyPlanId);
@@ -106,7 +112,7 @@ public class WeeklyController {
 	 *
 	 * */
 	@RequestMapping(value="removePlan")
-	public @ResponseBody ModelAndView removePlan(String planId)throws Exception{
+	public ModelAndView removePlan(String planId)throws Exception{
 		ModelAndView mav=weeklyService.removePlan(planId);
 		return mav;
 	}
@@ -115,8 +121,13 @@ public class WeeklyController {
 	 * viewWeeklyPlanList.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="saveWeeklyPlan")
-	public ModelAndView saveWeeklyPlan(WeeklyPlan weeklyPlan, HashMap<String, Long> sales)throws Exception{
-		ModelAndView mav=weeklyService.saveWeeklyPlan(weeklyPlan, sales);
+	public ModelAndView saveWeeklyPlan(@RequestParam("monday") String monday, @RequestParam("dailyPlanList") String dailyPlanListJson, HttpSession session) throws Exception{
+			System.out.println(monday);
+		Gson gson = new Gson();
+		Type type = new TypeToken<ArrayList<DailyPlan>>() {}.getType();
+		ArrayList<DailyPlan> dailyPlanList = gson.fromJson(dailyPlanListJson, type);
+
+		ModelAndView mav=weeklyService.saveWeeklyPlan(monday, dailyPlanList, session);
 		return mav;
 	}
 	/*
@@ -124,8 +135,23 @@ public class WeeklyController {
 	 * viewCalendarLeader.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="calendarLeader")
-	public ModelAndView calendarLeader(DailyPlan dailyPlan)throws Exception{
-		ModelAndView mav=weeklyService.calendarLeader(dailyPlan);
+	public ModelAndView calendarLeader(String deptId)throws Exception{
+		ModelAndView mav=weeklyService.calendarLeader(deptId);
+		return mav;
+	}
+	@RequestMapping(value="checkDailyPlan")
+	public ModelAndView checkDailyPlan(String empId, String planDate) throws Exception{
+		ModelAndView mav=weeklyService.checkDailyPlan(empId, planDate);
+		return mav;
+	}
+	@RequestMapping(value="inputPlanCalendar")
+	public ModelAndView inputPlanCalendar(String empId, String planDate, String content) throws Exception{
+		ModelAndView mav=weeklyService.inputPlanCalendar(empId, planDate, content);
+		return mav;
+	}
+	@RequestMapping(value="calendarGetPlan")
+	public ModelAndView calendarGetPlan(String empId) throws Exception{
+		ModelAndView mav=weeklyService.calendarGetPlan(empId);
 		return mav;
 	}
 	/*
@@ -133,8 +159,8 @@ public class WeeklyController {
 	 * viewCalendarPlan.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="calendarPlan")
-	public ModelAndView calendarPlan(DailyPlan dailyPlan)throws Exception{
-		ModelAndView mav=weeklyService.calendarPlan(dailyPlan);
+	public ModelAndView calendarPlan(HttpSession session, String empId)throws Exception{
+		ModelAndView mav=weeklyService.calendarPlan(session, empId);
 		return mav;
 	}
 

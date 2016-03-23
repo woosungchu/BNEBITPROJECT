@@ -1,0 +1,28 @@
+@CHARSET "UTF-8";
+
+.td-content {
+	max-width: 300px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.message-div .th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #ddd;
+}
+
+.message-div .td{
+    border-bottom: 1px solid #ddd;
+}
+
+.message-div .th, .message-div .td {
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    /* border-top: 1px solid #ddd; */
+}
+
+.panel-default {
+ 	border: 0px;
+}

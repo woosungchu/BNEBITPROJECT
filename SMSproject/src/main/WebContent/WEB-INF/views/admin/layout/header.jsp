@@ -4,4 +4,5 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}"></c:set>
 <p align="left">
 	<img src="${contextPath}/assets/image/logo.png">
+	<a href="/logout"><button style="float: right;">로그아웃</button></a>
 </p>

@@ -19,8 +19,8 @@ public class EventDAO {
 		return (Event)sqlMapClientTemplate.queryForObject("event.selectEvent", eventDate);
 	}
 
-	public ArrayList<Event> selectEventMonth(String eventDate) throws Exception{
-		return (ArrayList<Event>)sqlMapClientTemplate.queryForList("event.selectEventMonth", eventDate);
+	public ArrayList<Event> selectEventList() throws Exception{
+		return (ArrayList<Event>)sqlMapClientTemplate.queryForList("event.selectEventList");
 	}
 
 	// DailyReport : 오늘의 이벤트 조회

@@ -19,6 +19,10 @@ public class DailyReportDAO {
 	@Autowired
 	SqlMapClientTemplate sqlMapClientTemplate;
 
+	public int selectWeeklyProfits(String empId) {
+		return (int) sqlMapClientTemplate.queryForObject("dailyReport.selectWeeklyProfits",empId);
+	}
+
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	@SuppressWarnings("unchecked")
 	public List<Map<String,Object>> selectDailyReportList(PageOption<Map<String, Object>> pageOption) throws SQLException {
@@ -44,6 +48,12 @@ public class DailyReportDAO {
 	}
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 
+	// 일일보고 개수조회
+	public int countDailyReport(Map<String, Object> paramMap) throws SQLException {
+		int countDailyReport = (int) sqlMapClientTemplate.queryForObject("dailyReport.countDailyReport", paramMap);
+		return countDailyReport;
+	}
+
 	// 일일보고 목록조회(팀장)
 	@SuppressWarnings("unchecked")
 	public ArrayList<DailyReport> selectDailyReportListLeader(Map<String, Object> paramMap) throws SQLException {
@@ -58,12 +68,6 @@ public class DailyReportDAO {
 		ArrayList<DailyReport> dailyReportListWorker = (ArrayList<DailyReport>) sqlMapClientTemplate
 				.queryForList("dailyReport.selectDailyReportListWorker", paramMap);
 		return dailyReportListWorker;
-	}
-
-	// 이벤트 조회
-	public Event selectEvent() throws SQLException {
-		Event event = (Event) sqlMapClientTemplate.queryForObject("dailyReport.selectEvent");
-		return event;
 	}
 
 	// 일일보고 내용조회

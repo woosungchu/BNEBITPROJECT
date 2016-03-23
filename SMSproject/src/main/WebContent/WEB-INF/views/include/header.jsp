@@ -22,8 +22,9 @@
 		<div class="dropdown">
 			<a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
                                     <i class="fa fa-envelope-o"></i>
-                                    <span class="badge bg-green">6</span>
+                                    <span id="message-unchecked-count" class="badge bg-green"></span>
                                 </a>
+                                <a id="sendMessage" href="#!" data-toggle="modal" data-target="#messageModal"><i class="fa fa-pencil-square-o"></i></a>
                                 <ul id="menu1" class="dropdown-menu list-unstyled msg_list pull-right" role="menu">
                                     <li>
                                         <a>
@@ -94,11 +95,18 @@
 		<!-- profile -->
       	<div class="dropdown">
 	      <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-	        <img src="/assets/image/profile.JPG" alt="">  Hamster
+		      	<c:choose>
+				 	<c:when test="${LOGIN_USER.imgName != 'NONAME'}">
+				 		<img src="/Upload/${LOGIN_USER.imgName}" alt="ProfileImg" class="img-rounded hidden-xs"> ${LOGIN_USER.empName}
+					</c:when>
+					<c:otherwise>
+						<img src="/assets/image/noname.png" alt="NOIMAGE" class="img-rounded hidden-xs">  ${LOGIN_USER.empName}
+					</c:otherwise>
+				</c:choose>
 			<span class="fa fa-angle-down"></span>
 			</a>
 			<ul class="dropdown-menu pull-right">
-				<li><a href="#" class="preventDefault" data-toggle="modal" data-target="#userInfoModal"><i class="fa fa-child pull-right"></i>내 정보</a></li>
+				<li><a id="UserInfo" href="#" class="preventDefault" data-toggle="modal" data-target="#userInfoModal"><i class="fa fa-child pull-right"></i>내 정보</a></li>
 				<li><a href="#" onclick="location.href='/logout'" class="preventDefault"><i class="fa fa-sign-out pull-right"></i>로그아웃</a>
 				</li>
 			</ul>
@@ -118,11 +126,18 @@
         </div>
         <div class="modal-body">
         	<div id="userInfoBox" class="row">
-					<div class="media">
-						<div class="media-left">
-							<img id="profileImg" src="/assets/image/noname.png" />
+					<div class="row">
+						<div class="col-sm-3">
+							<c:choose>
+							   	<c:when test="${LOGIN_USER.imgName != 'NONAME'}">
+									<img id="profileImg" src="/Upload/${LOGIN_USER.imgName}" alt="ProfileImg" class="img-rounded hidden-xs">
+							   	</c:when>
+							   	<c:otherwise>
+								    <img id="profileImg" src="/assets/image/noname.png" alt="NOIMAGE" class="img-rounded hidden-xs">
+							  	</c:otherwise>
+							</c:choose>
 						</div>
-						<div class="media-body">
+						<div class="col-sm-9">
 							<h4>
 								${LOGIN_USER.empName}
 								<small>${LOGIN_USER.dept.deptName}
@@ -135,9 +150,22 @@
 							</h4>
 							<h5>연락처 : ${LOGIN_USER.phone}</h5>
 							<h5>이메일 : ${LOGIN_USER.email}</h5>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
 							<div class="btn-group pull-right" role="group">
-								<button id="btnChangePic" type="button" class="btn btn-default">사진 변경</button>
-								<button id="btnChangePwdModal" type="button" class="btn btn-default">비밀번호 변경</button>
+								<form id="modImgForm" action="/modifyProfileImg" method="POST" enctype="multipart/form-data">
+									<!-- 사진 변경 -->
+									<span class="btn btn-default btn-file">
+										사진 변경<input type="file" name="file">
+						            </span>
+						            <!-- 비밀번호 변경 -->
+									<button id="btnChangePwdModal" type="button" class="btn btn-default">
+										비밀번호 변경
+									</button>
+						            <input hidden="true" type="submit">
+								</form>
 							</div>
 						</div>
 					</div>
@@ -150,7 +178,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- changPwdModal -->
   <div class="modal fade" id="changePwdModal" role="dialog">
     <div class="modal-dialog">
@@ -188,3 +216,5 @@
       </div>
     </div>
   </div>
+
+  <jsp:include page="modalMessage.jsp"/>

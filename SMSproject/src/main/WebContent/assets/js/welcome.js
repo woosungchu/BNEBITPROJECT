@@ -5,13 +5,13 @@ $(document).ready(function(){
 	});
 
 	function init(){
-		resizing();
 		//tooltip bootstrap
 		$('[data-toggle="popover"]').popover();
 	}
 
 	init();
 });
+resizing()
 
 // Methods Declaration
 
@@ -122,16 +122,17 @@ $("#hiddenForm").submit(function(event){
 function resizing(){
 	var windowH = $(window).height()/2;
 //	var logoH = $('#logo').height();
-	var contentH = $('#content-box').height()/2;
+	var contentH = $('#contentBox').height()/2;
 
 //	var totalH = windowH - logoH - contentH;
 	var totalH = windowH - contentH;
 
-	$('#content-box').css("margin-top", totalH);
+	$('#contentBox').css("margin-top", totalH);
 }
 
-$('#user_id').dblclick(function(){
-	console.log("누르지마 아프잖아");
+$('#user_id').click(function(){
 	$(this).removeAttr('readonly');
+	$('#loginImg').attr("src","/assets/image/noname.png");
+	$('#loginImg').fadeIn(500);
 	$(this).val("");
 })

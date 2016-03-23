@@ -7,7 +7,6 @@
 	<typeAlias alias="employee" type="com.bnebit.sms.vo.Employee" />
 	<typeAlias alias="dept" type="com.bnebit.sms.vo.Dept" />
 	<typeAlias alias="dailyPlan" type="com.bnebit.sms.vo.DailyPlan" />
-	<typeAlias alias="event" type="com.bnebit.sms.vo.Event" />
 
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
@@ -21,6 +20,18 @@
 		<result property="profit" column="profit"/>
 		<result property="regDate" column="reg_date"/>
 	</resultMap>
+		
+	<!-- 메인페이지에 필요한 주간 매출액을 뽑아냄 -->
+	<select id="selectWeeklyProfits" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select sum(profit) from daily_report
+	      where emp_id = #empId# 
+	      and trunc(reg_date) in 
+	      (select plan_date
+	      from daily_plan dp inner join weekly_plan wp
+	      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
+	      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
+	      and emp_id = #empId#)
+	</select>
 
 	<!-- 모든 일일업무 보고 일지를 목록을 통하여 보여줌   -->
 	<select id="selectDailyReportList" parameterClass="pageOption" resultMap="dailyReportMap">
@@ -183,71 +194,108 @@
 		<result column="emp_name" property="empName" />
 	</resultMap>
 
+	<!-- 일일보고 개수 -->
+	<select id="countDailyReport" parameterClass="java.util.HashMap" resultClass="int">
+		select count(*) as countDailyReport
+		from daily_report, employee
+		where employee.emp_id = daily_report.emp_id
+		<isNotEmpty property="empId">
+				and employee.emp_id = #empId#
+		</isNotEmpty>
+		<isNotEmpty property="deptId">
+				and dept_id = #deptId#
+		</isNotEmpty>
+		<isNotEmpty property="searchKey">
+			<isNotEmpty property="searchValue">
+				<isEqual property="searchKey" compareValue="title" prepend="and">
+					title like '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="writer" prepend="and">
+					emp_name like '%' || #searchValue# || '%'
+				</isEqual>
+				<isEqual property="searchKey" compareValue="regDate"
+					prepend="and">
+					reg_date like '%' || #searchValue# || '%'
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+
 	<!-- 일일보고 목록조회(팀장) -->
 	<select id="selectDailyReportListLeader" parameterClass="java.util.HashMap"
 		resultMap="selectDailyReportListMap">
-		select daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date,
-		feedback
-		from
-		employee, daily_report
-		where employee.emp_id =
-		daily_report.emp_id
-		and dept_id = #deptId#
-		<isNotEmpty property="searchKey">
-			<isNotEmpty property="searchValue">
-				<isEqual property="searchKey" compareValue="title" prepend="and">
-					title like '%' || #searchValue# || '%'
-				</isEqual>
-				<isEqual property="searchKey" compareValue="writer" prepend="and">
-					emp_name like '%' || #searchValue# || '%'
-				</isEqual>
-				<isEqual property="searchKey" compareValue="regDate"
-					prepend="and">
-					reg_date like '%' || #searchValue# || '%'
-				</isEqual>
-			</isNotEmpty>
-		</isNotEmpty>
-		<isNotEmpty property="sortKey" prepend="order by">
-			$sortKey$
-		</isNotEmpty>
+		select d2.daily_report_id, d2.title, d2.emp_id, d2.emp_name, d2.reg_date, d2.feedback
+		from (
+			select rownum rnum2, d.daily_report_id, d.title, d.emp_id, d.emp_name, d.reg_date, d.feedback
+			from (
+				  select rownum rnum, daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date, feedback
+				  from employee, daily_report
+				  where employee.emp_id = daily_report.emp_id
+				  and dept_id = #deptId#
+					<isNotEmpty property="searchKey">
+						<isNotEmpty property="searchValue">
+							<isEqual property="searchKey" compareValue="title" prepend="and">
+								title like '%' || #searchValue# || '%'
+							</isEqual>
+							<isEqual property="searchKey" compareValue="writer" prepend="and">
+								emp_name like '%' || #searchValue# || '%'
+							</isEqual>
+							<isEqual property="searchKey" compareValue="regDate"
+								prepend="and">
+								reg_date like '%' || #searchValue# || '%'
+							</isEqual>
+						</isNotEmpty>
+					</isNotEmpty>
+					<isEmpty property="sortKey" prepend="order by">
+						daily_report_id desc
+					</isEmpty>
+					<isNotEmpty property="sortKey" prepend="order by">
+						$sortKey$ $sortBy$
+					</isNotEmpty>
+			) d
+			order by rnum2) d2
+		where d2.rnum2 between #startNum# and #endNum#
 	</select>
 
 	<!-- 일일보고 목록조회(팀원) -->
-	<select id="selectDailyReportListWorker" resultMap="selectDailyReportListMap">
-		select daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date, feedback
-		from employee, daily_report
-		where employee.emp_id =
-		daily_report.emp_id
-		and employee.emp_id = #empId#
-		<isNotEmpty property="searchKey">
-			<isNotEmpty property="searchValue">
-				<isEqual property="searchKey" compareValue="title" prepend="and">
-					title like '%' || #searchValue# || '%'
-				</isEqual>
-				<isEqual property="searchKey" compareValue="writer" prepend="and">
-					emp_name like '%' || #searchValue# || '%'
-				</isEqual>
-				<isEqual property="searchKey" compareValue="regDate"
-					prepend="and">
-					reg_date like '%' || #searchValue# || '%'
-				</isEqual>
-			</isNotEmpty>
-		</isNotEmpty>
-		<isNotEmpty property="sortKey" prepend="order by">
-			$sortKey$
-		</isNotEmpty>
-	</select>
-
-	<!-- 이벤트 조회 -->
-	<select id="selectEvent" resultClass="event">
-		select event_id, event_date, holiday, title
-		from events
-		where event_date = to_char(SYSDATE, 'RRRR/MM/DD')
+	<select id="selectDailyReportListWorker" parameterClass="java.util.HashMap"
+		resultMap="selectDailyReportListMap">
+		select d2.daily_report_id, d2.title, d2.emp_id, d2.emp_name, d2.reg_date, d2.feedback
+		from (
+			select rownum rnum2, d.daily_report_id, d.title, d.emp_id, d.emp_name, d.reg_date, d.feedback
+			from (
+				  select rownum rnum, daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date, feedback
+				  from employee, daily_report
+				  where employee.emp_id = daily_report.emp_id
+				  and employee.emp_id = #empId#
+					<isNotEmpty property="searchKey">
+						<isNotEmpty property="searchValue">
+							<isEqual property="searchKey" compareValue="title" prepend="and">
+								title like '%' || #searchValue# || '%'
+							</isEqual>
+							<isEqual property="searchKey" compareValue="writer" prepend="and">
+								emp_name like '%' || #searchValue# || '%'
+							</isEqual>
+							<isEqual property="searchKey" compareValue="regDate"
+								prepend="and">
+								reg_date like '%' || #searchValue# || '%'
+							</isEqual>
+						</isNotEmpty>
+					</isNotEmpty>
+					<isEmpty property="sortKey" prepend="order by">
+						daily_report_id desc
+					</isEmpty>
+					<isNotEmpty property="sortKey" prepend="order by">
+						$sortKey$ $sortBy$
+					</isNotEmpty>
+			) d
+			order by rnum2) d2
+		where d2.rnum2 between #startNum# and #endNum#
 	</select>
 
 	<!-- 일일보고 내용조회 -->
 	<select id="selectDailyReportView" parameterClass="HashMap"
-		resultMap="dailyReportMap">
+		resultMap="dailyReportViewMap">
 		select daily_report_id, title, employee.emp_id, emp_name, phone, email, position,
 		dept.dept_id, dept_name, state, img_name, departure, arrival, profit, to_char(reg_date, 'RRRR/MM/DD') reg_date, content, feedback
 		from dept, employee, daily_report
@@ -264,15 +312,10 @@
 
 	<!-- 일일보고 내용조회 -->
 	<select id="selectSalesGoal" parameterClass="HashMap" resultMap="dailyPlanSubMap">
-		select plan_date, sales_goal
+		select to_char(plan_date, 'RRRR/MM/DD') plan_date, sales_goal
 		from weekly_plan, daily_plan
 		where weekly_plan.weekly_plan_id = daily_plan.weekly_plan_id
-		and emp_id=
-		(
-			select emp_id
-			from daily_report
-			where daily_report_id = #dailyReportId#
-		)
+		and emp_id = #empId#
 		and plan_date = #planDate#
 	</select>
 

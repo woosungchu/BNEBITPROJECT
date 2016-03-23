@@ -24,7 +24,8 @@
         </div>
 
     </div>
-
+	<div class="visible-xs">
         <tiles:insertAttribute name="footer" />
+    </div>
 </body>
 </html>

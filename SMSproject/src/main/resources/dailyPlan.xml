@@ -41,6 +41,14 @@
 		set sales_goal=#salesGoal#
 		where daily_plan_Id=#dailyPlanId#
 	</update>
+	<!-- 달력에서 일정 입력 -->
+	<select id="selectIdByEmpDate" parameterClass="com.bnebit.sms.vo.DailyPlan" resultClass="java.lang.String">
+		select d.daily_plan_id
+		from DAILY_PLAN d, WEEKLY_PLAN w
+		where d.WEEKLY_PLAN_ID=w.WEEKLY_PLAN_ID
+		      AND w.EMP_ID=#weeklyPlan.employee.empId#
+		      AND d.PLAN_DATE=#planDate#
+	</select>
 
 </sqlMap>
 

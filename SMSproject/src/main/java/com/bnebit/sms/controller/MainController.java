@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.bnebit.sms.service.EmployeeService;
@@ -35,6 +36,7 @@ public class MainController {
 	public ModelAndView index(@CookieValue(value="JSESSIONID", defaultValue="-1") String cookieID,
 			HttpServletRequest request, HttpServletResponse response,
 			HttpSession session){
+//		session.removeAttribute("LOGIN_USER");
 		ModelAndView mav = employeeService.sessionCheck(cookieID,request,session);
 		if("mainPage".equals(mav.getViewName())){
 			mav = mainService.followMe(session);
@@ -44,7 +46,6 @@ public class MainController {
 	
 	@RequestMapping(value="/loginForm")
 	public ModelAndView loginForm(HttpSession session){
-		log.info("redirect:/loginForm.........##########");
 		ModelAndView mav = employeeService.securePacket(session);
 		return mav;
 	}
@@ -83,8 +84,19 @@ public class MainController {
 	}
 	@RequestMapping("/modifyPwd")
 	public ModelAndView modifyPwd(HttpSession session, String currentPwd, String newPassword){
-		System.out.println("currentPwd = "+ currentPwd);
 		ModelAndView mav = employeeService.changePassword(session, currentPwd, newPassword);
+		return mav;
+	}
+	@RequestMapping("/modifyProfileImg")
+	public ModelAndView modifyProfileImg(MultipartFile file, HttpSession session){
+		ModelAndView mav = employeeService.modifyProfileImg(file,session);
+		return mav;
+	}
+	
+	@RequestMapping("/planCheck")
+	public ModelAndView planCheck(String planId , String checked){
+		System.out.println(planId + checked);
+		ModelAndView mav = mainService.planCheck(planId, checked);
 		return mav;
 	}
 	

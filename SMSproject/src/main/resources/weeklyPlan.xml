@@ -16,6 +16,15 @@
 		<result property="checked" column="checked"/>
 		<result property="regDate" column="reg_date"/>
 	</resultMap>
+	
+	<!-- 매출 목표가져오기 -->
+	<select id="selectWeeklySalesGoal" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select sum(sales_goal)
+	      from daily_plan dp inner join weekly_plan wp
+	      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
+	      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
+	      and emp_id = #empId#
+	</select>
 
 	<!-- 모든 주간 계획을 목록을 통하여 보여줌  -->
 	<select id="selectWeeklyPlanList" parameterClass="pageOption" resultMap="weeklyPlanMap">
@@ -140,7 +149,7 @@
 									from WEEKLY_PLAN w, EMPLOYEE e
 									where e.emp_id=w.emp_id
 									      AND e.emp_id=#empId#
-									order by reg_date) A
+									order by reg_date DESC) A
 						where rownum <= #rownum#+10) B
 			where rnum > #rownum#
 		]]>
@@ -173,6 +182,28 @@
 						where rownum <= #rownum# + 10) B
 			where rnum > #rownum#
 		]]>
+	</select>
+
+	<select id="selectWeeklyListCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(*) as cnt
+		from EMPLOYEE e, WEEKLY_PLAN w
+		where e.emp_id=w.emp_id
+					AND e.dept_id=#deptId#
+	</select>
+
+	<select id="selectWeeklyListEmpCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(*) as cnt
+		from EMPLOYEE e, WEEKLY_PLAN w
+		where e.emp_id=w.emp_id
+					AND e.emp_id=#empId#
+	</select>
+
+	<select id="selectWeeklyListWeekCount" parameterClass="com.bnebit.sms.vo.WeeklyPlan" resultClass="java.lang.Integer">
+		select count(*) as cnt
+		from EMPLOYEE e, WEEKLY_PLAN w
+		where e.emp_id=w.emp_id
+					AND e.dept_id=#employee.dept.deptId#
+					AND w.monday=#monday#
 	</select>
 
 	<resultMap class="com.bnebit.sms.vo.WeeklyPlan" id="weeklyPlanETCResultMap">
@@ -265,31 +296,40 @@
 	</select>
 
 	<resultMap class="com.bnebit.sms.vo.DailyPlan" id="calendarLeaderResultMap">
+		<result property="weeklyPlan.employee.empId" column="emp_id"/>
 		<result property="weeklyPlan.employee.empName" column="emp_name"/>
 		<result property="planDate" column="plan_date"/>
 	</resultMap>
 	<!-- 팀장 : 주간계획 제출한 모든 사원의 이름 조회 -->
-	<select id="selectCalendarManager" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="calendarLeaderResultMap">
-		select DISTINCT e.emp_name, d.plan_date
+	<select id="selectCalendarManager" parameterClass="java.lang.String" resultMap="calendarLeaderResultMap">
+		<!-- select DISTINCT e.emp_name, d.plan_date, e.emp_id
 		from EMPLOYEE e, WEEKLY_PLAN w, DAILY_PLAN d, Plan p
 		where e.emp_id=w.emp_id
     		  AND w.WEEKLY_PLAN_ID=d.WEEKLY_PLAN_ID
     		  AND p.daily_plan_id=d.daily_plan_id
     		  AND e.dept_id=#weeklyPlan.employee.dept.deptId#
-   		    AND d.PLAN_DATE between TO_DATE(#planDate#) AND ADD_MONTHS(TO_DATE(#planDate#), 1)
+   		    AND d.PLAN_DATE between TO_DATE(#planDate#) AND ADD_MONTHS(TO_DATE(#planDate#), 1) -->
+   	select DISTINCT e.emp_name, d.plan_date, e.emp_id
+		from EMPLOYEE e, WEEKLY_PLAN w, DAILY_PLAN d, Plan p
+		where e.emp_id=w.emp_id
+    		  AND w.WEEKLY_PLAN_ID=d.WEEKLY_PLAN_ID
+    		  AND p.daily_plan_id=d.daily_plan_id
+    		  AND e.dept_id=#deptId#
 	</select>
 
 	<resultMap class="com.bnebit.sms.vo.Plan" id="calendarPlanResultMap">
 		<result property="dailyPlan.planDate" column="plan_date"/>
 		<result property="content" column="content"/>
+		<result property="dailyPlan.weeklyPlan.employee.empName" column="emp_name"/>
 	</resultMap>
 	<!-- 본인의 plan 조회 -->
-	<select id="selectCalendarPlan" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="calendarPlanResultMap">
-		select p.content, d.plan_date
-		from WEEKLY_PLAN w,DAILY_PLAN d, PLAN p
+	<select id="selectCalendarPlan" parameterClass="java.lang.String" resultMap="calendarPlanResultMap">
+		select p.content, d.plan_date, e.emp_name
+		from WEEKLY_PLAN w,DAILY_PLAN d, PLAN p, EMPLOYEE e
 		where w.weekly_plan_id=d.weekly_plan_id
+					AND w.emp_id=e.emp_id
     		  AND p.daily_plan_id=d.daily_plan_id
       		AND w.emp_id=#weeklyPlan.employee.empId#
-      		AND d.PLAN_DATE between TO_DATE(#planDate#) AND ADD_MONTHS(TO_DATE(#planDate#), 1)
 	</select>
+	
 </sqlMap>

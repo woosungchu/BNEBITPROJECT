@@ -1,0 +1,76 @@
+
+/* calendar */
+#calendar {
+    width: 100%;
+    margin: 0 auto;
+    font-size: 10px;
+}
+.fc-toolbar h2 {
+    font-size: 2em;
+    white-space: normal !important;
+}
+.fc-view-month .fc-event, .fc-view-agendaWeek .fc-event, .fc-content {
+    font-size: 0;
+    overflow: hidden;
+    height: 2px;
+}
+
+.fc-button-content {
+    padding: 0;
+}
+
+/* main-ul  */
+.main-ul {
+	padding : 0;
+	list-style: none;
+	
+	max-height : 280px;
+	overflow-y : scroll;
+}
+.main-ul > li {
+    width: 25%;
+    float: left;
+    padding: 7.5px;
+    color: #333;
+    font
+/*     text-align : center; */
+}
+.main-ul > li > a> img{
+	vertical-align: middle;
+    max-width : 100%;
+    max-height: 73px;
+    border-radius : 3px;
+}
+
+/* main-graph */
+#main-graph {
+	margin : 10px 5px 5px 2px;
+}
+
+#accordion, #to-do-list	{
+	margin-bottom : 0;
+}
+
+.c-pointer:hover {
+	cursor: pointer;
+}
+
+/* to-do-list */
+#to-do-list {
+	max-height: 250px;
+	overflow-y : scroll;
+}
+
+#session-profile img{
+	width :100%;
+	max-height : 80px;
+	border-radius : 5px;
+}
+
+/* week-profit */
+#week-profit span{
+	max-width : 33%;
+	font-size : 1.2em;
+	padding-left: 1em;
+}
+/* /////////////// */

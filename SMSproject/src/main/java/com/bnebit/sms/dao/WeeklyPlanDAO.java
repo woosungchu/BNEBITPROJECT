@@ -19,7 +19,7 @@ import com.bnebit.sms.vo.WeeklyPlan;
 public class WeeklyPlanDAO {
 	@Autowired
 	SqlMapClientTemplate sqlMapClientTemplate;;
-
+	
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	@SuppressWarnings("unchecked")
 	public List<Map<String,Object>> selectWeeklyPlanList(PageOption<Map<String, Object>> pageOption) throws SQLException {
@@ -56,13 +56,25 @@ public class WeeklyPlanDAO {
 		return planList;
 	}
 
-	public ArrayList<WeeklyPlan> selectWeeklyPlanListWeek (WeeklyPlan weeklyPlan, int rownum) throws Exception{
+	public ArrayList<WeeklyPlan> selectWeeklyPlanListWeek (String deptId, String monday, int rownum) throws Exception{
 		HashMap<String, Object> map=new HashMap<String, Object>();
-		map.put("deptId", weeklyPlan.getEmployee().getDept().getDeptId());
-		map.put("monday", weeklyPlan.getMonday());
+		map.put("deptId", deptId);
+		map.put("monday", monday);
 		map.put("rownum", rownum);
 		ArrayList<WeeklyPlan> planList=(ArrayList<WeeklyPlan>)sqlMapClientTemplate.queryForList("weeklyPlan.selectWeeklyPlanListWeek", map);
 		return planList;
+	}
+
+	public int selectWeeklyListCount(String deptId) throws Exception{
+		return (int) sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklyListCount", deptId);
+	}
+
+	public int selectWeeklyListEmpCount(String empId) throws Exception{
+		return (int) sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklyListEmpCount", empId);
+	}
+
+	public int selectWeeklyListWeekCount(WeeklyPlan weeklyPlan) throws Exception{
+		return (int) sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklyListWeekCount", weeklyPlan);
 	}
 
 	public WeeklyPlan selectWeeklyETC(String weeklyPlanId) throws Exception{
@@ -95,11 +107,15 @@ public class WeeklyPlanDAO {
 		return (String)sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklyPlanByPlan", planId);
 	}
 
-	public ArrayList<DailyPlan> selectCalendarManager(DailyPlan dailyPlan) throws Exception{
-		return (ArrayList<DailyPlan>)sqlMapClientTemplate.queryForList("weeklyPlan.selectCalendarManager", dailyPlan);
+	public ArrayList<DailyPlan> selectCalendarManager(String deptId) throws Exception{
+		return (ArrayList<DailyPlan>)sqlMapClientTemplate.queryForList("weeklyPlan.selectCalendarManager", deptId);
 	}
 
-	public ArrayList<Plan> selectCalendarPlan(DailyPlan dailyPlan) throws Exception{
-		return (ArrayList<Plan>) sqlMapClientTemplate.queryForList("weeklyPlan.selectCalendarPlan", dailyPlan);
+	public ArrayList<Plan> selectCalendarPlan(String empId) throws Exception{
+		return (ArrayList<Plan>) sqlMapClientTemplate.queryForList("weeklyPlan.selectCalendarPlan", empId);
+	}
+
+	public int selectWeeklySalesGoal(String empId) {
+		return (int)sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklySalesGoal",empId);
 	}
 }

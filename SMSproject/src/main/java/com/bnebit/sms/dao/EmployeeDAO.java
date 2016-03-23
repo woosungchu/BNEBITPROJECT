@@ -40,6 +40,13 @@ public class EmployeeDAO {
 	public void updatePassword(Employee vo) {
 		sqlMapClientTemplate.update("employee.updatePassword",vo);
 	}
+	
+	public ArrayList<Employee> selectEmployeeByDept(String deptId) {
+		 ArrayList<Employee> list = ( ArrayList<Employee>)
+				sqlMapClientTemplate.queryForList("employee.selectEmployeeByDept", deptId);
+		return list;
+	}
+	
 
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	@SuppressWarnings("unchecked")
@@ -72,6 +79,12 @@ public class EmployeeDAO {
 
 	public void insertEmp(Employee employee) throws SQLException{
 		sqlMapClientTemplate.insert("employee.insertEmp", employee);
+	}
+
+	@SuppressWarnings("unchecked")
+	public ArrayList<String> selectEmpEmailList() throws SQLException{
+		List<String> emailList = (List<String>) sqlMapClientTemplate.queryForList("employee.selectEmpEmailList");
+		return (ArrayList<String>) emailList;
 	}
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 

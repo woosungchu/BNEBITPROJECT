@@ -40,7 +40,7 @@
 	                     		],
 	          		colModel : [
 	                    		{ name : 'weeklyPlanId',    hidden:true},
-	                    		{ name : 'title',       width:400,  align:'center', index:'c.title' /* , formatter:custom_link */ },
+	                    		{ name : 'title',       width:400,  align:'center', index:'c.title' , formatter:custom_link },
 	                    		{ name : 'monday', 	  width:300,  align:'center', index:'c.monday'},
 	                    		{ name : 'memberName', 	  width:150,  align:'center', index:'e.member_name'},
 	                    		{ name : 'managerName', width:150,  align:'center', index:'e.manager_name'},
@@ -68,6 +68,12 @@
 	          	    sortname : historyPageObject == null ? '' : historyPageObject.sidx, /* 처음 정렬될 컬럼 */
 	          		sortorder : historyPageObject == null ? 'asc' : historyPageObject.sord,  /* 정렬방법 (asc/desc) */
 					//////////////////////
+					loadError: function (jqXHR, textStatus, errorThrown) {
+						if (jqXHR.status == '406') {
+					        alert(jqXHR.responseText);
+					        location.href = contextPath + '/';
+						}
+				    },
 					beforeSelectRow: function (rowid, e) {
 	                     return $(e.target).is('input[type=checkbox]');	// 선택한 row의 셀이 checkbox 셀이어야 true 를 반환. (다른 셀공간을 클릭하여도 체크박스 체크가 되지 않도록 함)
 	                },
@@ -150,13 +156,13 @@
 						 );
 	    		//}).jqGrid('navGrid','#pager',{edit:false,add:false,del:false,search:true});
 
-	 			/* function custom_link(cellValue, options, rowdata, action)
+	 			function custom_link(cellValue, options, rowdata, action)
 	 			{
-	 				var html = '<a style="color: blue;" href=${contextPath}/tiles/viewDailyReport';
-	 				html += '?dailyReportId=' + rowdata.dailyReportId;
+	 				var html = '<a style="color: blue;" href=${contextPath}/admin/report/viewWeeklyPlan';
+	 				html += '?weeklyPlanId=' + rowdata.weeklyPlanId;
 	 				html += '>'+rowdata.title+'</a>';
 	 				return html;
-	 			} */
+	 			}
 
 		});
 		</script>

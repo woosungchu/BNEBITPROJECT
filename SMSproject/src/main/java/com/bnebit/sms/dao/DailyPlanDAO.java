@@ -27,4 +27,8 @@ public class DailyPlanDAO {
 	public void updateDailyPlanSales(DailyPlan dailyPlan) throws Exception{
 		sqlMapClientTemplate.update("dailyPlan.updateDailyPlanSales", dailyPlan);
 	}
+	public String selectIdByEmpDate(DailyPlan dailyPlan) throws Exception{
+		return (String)sqlMapClientTemplate.queryForObject("dailyPlan.selectIdByEmpDate", dailyPlan);
+	}
+
 }

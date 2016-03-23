@@ -11,20 +11,6 @@
 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 <title>Bootstrap 101 Template</title>
 
-<!-- Bootstrap -->
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-<link href="/assets/css/simple-sidebar.css" rel="stylesheet">
-<link href="/assets/css/header.css" rel="stylesheet">
-
-<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-<!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
 <style>
 input:focus, textarea:focus{
     outline: none;
@@ -32,69 +18,152 @@ input:focus, textarea:focus{
 </style>
 </head>
 <body>
-	<jsp:include page="../../include/header.jsp" />
-	<div id="wrapper" class="">
-		<!-- Sidebar -->
-		<jsp:include page="../../include/sidebar.jsp" />
-		<!-- Page Content -->
-		<div id="page-content-wrapper">
-			<div class="container-fluid xyz">
-				<form class="form-horizontal">
-					<div class="col-lg-6">
-						<h1 class="text-center">주간계획 리스트</h1>
-						<hr>
-						<div class="form-group">
-							<div class="table-responsive">
-  							<table class="table table-bordered">
-  								<tr>
-  									<th>제목</th>
-  									<th>기간</th>
-  									<th>상태</th>
-  									<th>등록일</th>
-  								</tr>
-  								<c:forEach items="${weeklyList}" begin="0" end="10" var="weekly" varStatus="status">
-	  								<tr>
-	  									<td><a href="viewWeeklyPlan?weeklyPlanId=${weekly.weeklyPlanId}">${weekly.title}</a></td>
-	  									<td>${weekly.monday }</td>
-	  									<td>${weekly.checked }</td>
-	  									<td>${weekly.regDate }</td>
-	  								</tr>
-  								</c:forEach>
- 							  </table>
-							</div>
-						</div>
-						<div class="form-group">
-							<div class="btn-toolbar col-sm-10" role="toolbar" aria-label="...">
-								<c:forEach var="num" begin="1" end="${fn:length(weeklyList)/10 + 1}">
-									<div class="btn-group" role="group" aria-label="${num}">
-										<c:choose>
-											<c:when test="${page=='weeklyListEmp'}">
-												<a href="weeklyListEmp?empId=${weeklyList[0].employee.empId}&rownum=${(num-1)*10}" class="btn btn-default" role="button">${num}</a>
-											</c:when>
-											<c:when test="${page=='weeklyList'}">
-												<a href="weeklyList?deptId=${weeklyList[0].employee.dept.deptId}&rownum=${(num-1)*10}" class="btn btn-default" role="button">${num}</a>
-											</c:when>
-										</c:choose>
-									</div>
-								</c:forEach>
-							</div>
-							<div class="btn-group col-sm-2">
-								<a href="inputWeeklyPlan?empId=1&monday=16/03/21" class="btn btn-primary btn-lg" value="작성" role="button">작성</a>
-							</div>
-						</div>
-					</div>
-					<div class="col-lg-6"></div>
-				</form>
+	<form class="form-horizontal">
+			<h1 class="text-center">주간계획 리스트</h1>
+			<hr>
+			<div class="form-group">
+				<div class="table-responsive">
+						<table class="table table-bordered">
+							<tr>
+								<th>제목</th>
+								<th>기간</th>
+								<th>상태</th>
+								<th>등록일</th>
+							</tr>
+							<c:forEach items="${weeklyList}" begin="0" end="10" var="weekly" varStatus="status">
+								<tr>
+									<td><span id="viewOrEdit_${weekly.weeklyPlanId}" ></span></td>
+									<td id="tdMonday_${weekly.weeklyPlanId}">${weekly.monday }</td>
+									<td>${weekly.checked }</td>
+									<td>${weekly.regDate }</td>
+								</tr>
+							</c:forEach>
+					  </table>
+				</div>
 			</div>
-		</div>
-	</div>
+			<div class="form-group">
+				<div class="btn-toolbar col-sm-10" role="toolbar" aria-label="...">
+					<c:if test="${begin!=1}">
+						<c:choose>
+							<c:when test="${page=='weeklyListEmp'}">
+								<a href="weeklyListEmp?empId=${LOGIN_USER.empId}&rownum=${(begin-2)*10}" class="btn btn-default" role="button">...</a>
+							</c:when>
+							<c:when test="${page=='weeklyList'}">
+								<a href="weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=${(begin-2)*10}" class="btn btn-default" role="button">...</a>
+							</c:when>
+						</c:choose>
+					</c:if>
+					<c:forEach var="num" begin="${begin}" end="${end}">
+						<div class="btn-group" role="group" aria-label="${num}">
+							<c:choose>
+								<c:when test="${page=='weeklyListEmp'}">
+									<c:choose>
+										<c:when test="${(rownum/10+1) == num}">
+											<a href="weeklyListEmp?empId=${LOGIN_USER.empId}&rownum=${(num-1)*10}" style="color: #aaaaaa;" class="btn btn-default" role="button">${num}</a>
+										</c:when>
+										<c:otherwise>
+											<a href="weeklyListEmp?empId=${LOGIN_USER.empId}&rownum=${(num-1)*10}" class="btn btn-default" role="button">${num}</a>
+										</c:otherwise>
+									</c:choose>
+								</c:when>
+								<c:when test="${page=='weeklyList'}">
+									<c:choose>
+										<c:when test="${(rownum/10+1) == num}">
+											<a href="weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=${(num-1)*10}" style="color: #aaaaaa;" class="btn btn-default" role="button">${num}</a>
+										</c:when>
+										<c:otherwise>
+											<a href="weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=${(num-1)*10}" class="btn btn-default" role="button">${num}</a>
+										</c:otherwise>
+									</c:choose>
+								</c:when>
+							</c:choose>
+						</div>
+					</c:forEach>
+					<c:if test="${end<(count/10)}">
+						<c:choose>
+							<c:when test="${page=='weeklyListEmp'}">
+								<a href="weeklyListEmp?empId=${LOGIN_USER.empId}&rownum=${end*10}" class="btn btn-default" role="button">...</a>
+							</c:when>
+							<c:when test="${page=='weeklyList'}">
+								<a href="weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=${end*10}" class="btn btn-default" role="button">...</a>
+							</c:when>
+						</c:choose>
+					</c:if>
+				</div>
+				<div class="btn-group col-sm-2">
+					<span id="button"></span>
+				</div>
+			</div>
+	</form>
 
+	<script type="text/javascript">
+		$(document).ready(function(){
+			addButton();
+			viewOrEdit();
+		});
 
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script
-		src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-	<script src="/assets/js/sidebar_menu.js"></script>
+		function viewOrEdit(){
+			var date=new Date();
+			var year=date.getFullYear();
+			var month=date.getMonth()+1;
+			if(month<10){
+				month="0"+month;
+			}
+			var day=date.getDate();
+			if(day<10){
+				day="0"+day;
+			}
+			var dateString=year+"/"+month+"/"+day;
+			<c:forEach items="${weeklyList}" begin="0" end="10" var="weekly" varStatus="status">
+				var tdMonday=$('#tdMonday_${weekly.weeklyPlanId}').text();
+					var monday=tdMonday.substring(0,10);
+					var span=document.getElementById("viewOrEdit_${weekly.weeklyPlanId}");
+					if(dateString<monday){
+						span.innerHTML+="<a href=\"editWeeklyPlan?weeklyPlanId=${weekly.weeklyPlanId}\">${weekly.title}</a>";
+					}else{
+						span.innerHTML+="<a href=\"viewWeeklyPlan?weeklyPlanId=${weekly.weeklyPlanId}\">${weekly.title}</a>";
+					}
+			</c:forEach>
+		}
+
+		function addButton(){
+			var date=new Date();
+			var dayOfMonth=date.getDate();
+			var day=date.getDay();
+			// 현재를 기준으로 그 다음주의 monday 구하기
+			switch(day){
+			case 1:
+				dayOfMonth+=7;
+				break;
+			case 2:
+				dayOfMonth+=6;
+				break;
+			case 3:
+				dayOfMonth+=5;
+				break;
+			case 4:
+				dayOfMonth+=4;
+				break;
+			case 5:
+				dayOfMonth+=3;
+				break;
+			}
+			date.setDate(dayOfMonth);
+			var year=date.getFullYear();
+			var month=date.getMonth()+1;
+			if(month<10){
+				month="0"+month;
+			}
+			var day=date.getDate();
+			if(day<10){
+				day="0"+day;
+			}
+			var dateString=year + "/" + month + "/" + day;
+
+			var span=document.getElementById("button");
+			span.innerHTML+="<a href=\"checkWeeklyPlan?empId=${LOGIN_USER.empId}&monday="+dateString+"\" class=\"btn btn-primary btn-lg\" role=\"button\">작성</a>";
+
+		}
+	</script>
 </body>
 </html>

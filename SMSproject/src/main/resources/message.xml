@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="message">
+
+	<typeAlias alias="Employee" type="com.bnebit.sms.vo.Employee"/>
+	<typeAlias alias="Message" type="com.bnebit.sms.vo.Message" />
+	<typeAlias alias="PageSet" type="com.bnebit.sms.util.page.PageSet" />
+
+	<insert id="insertMessage" parameterClass="Message">
+		insert into message(
+			msg_id,
+			emp_id,
+			sender,
+			content
+		) values(
+			seq_msg_id.nextval,
+			#receiver.empId#,
+			#sender.empId#,
+			#content#
+		)
+	</insert>
+
+	<select id="searchEmployee" parameterClass="Employee" resultClass="Employee">
+	    SELECT
+	    	emp_id as empId,
+	    	emp_name as empName,
+	    	position
+	    FROM
+		    employee
+	    WHERE
+	    	DEPT_ID = #dept.deptId#
+	    and
+	    	state = 'ACTIVE'
+    	and
+    		position != 'Admin'
+		and
+			emp_name LIKE '%' || #empName# || '%'
+	</select>
+
+	<select id="selectReceiverEmailList" resultClass="String">
+	  	select
+	  		email
+		from
+			employee
+		<dynamic prepend="where">
+			emp_id
+			<iterate open=" in (" conjunction="," close=")">
+			    #[]#
+		    </iterate>
+		</dynamic>
+	</select>
+
+	<select id="selectUncheckedMessageConut" parameterClass="String" resultClass="int">
+		select
+			count(*)
+		from
+			message
+		where
+			checked = 0
+		and
+			emp_id = #receiverEmpId#
+	 </select>
+
+
+	<sql id="searchMessage">
+		<isNotEmpty property="pageSet.searchKey">
+			<isNotEmpty property="pageSet.searchValue">
+				<isEqual property="pageSet.searchKey" compareValue="empName" prepend="AND">
+	          		e.emp_name LIKE '%' || #pageSet.searchValue# || '%'
+	        	</isEqual>
+	        	<isEqual property="pageSet.searchKey" compareValue="content" prepend="AND">
+	          		m.content LIKE '%' || #pageSet.searchValue# || '%'
+	        	</isEqual>
+	      	</isNotEmpty>
+	    </isNotEmpty>
+
+	    <isNotEmpty property="pageSet.startDate" prepend="AND">
+			msg_date >= #pageSet.startDate#
+		</isNotEmpty>
+
+		<isNotEmpty property="pageSet.endDate" prepend="AND">
+			msg_date <![CDATA[ < ]]>
+			TO_DATE(#pageSet.endDate#) + 1
+		</isNotEmpty>
+	</sql>
+
+	<select id="selectReceiveMessageCount" parameterClass="Map" resultClass="long">
+	  	select
+	  		count(*)
+	    from
+	    	message m inner join employee e
+	    on
+	    	m.sender = e.emp_id
+	    where
+	    	m.emp_id = #empId#
+    	<include refid="searchMessage"/>
+	</select>
+
+	<resultMap class="Message" id="receiveMessageMap">
+		<result property="msgId" column="msg_id"/>
+		<result property="content" column="content"/>
+		<result property="checked" column="checked"/>
+		<result property="msgDate" column="msgDate"/>
+		<result property="sender.empName" column="emp_name"/>
+		<result property="sender.email" column="email"/>
+	</resultMap>
+
+	<select id="selectReceiveMessageList" parameterClass="Map" resultMap="receiveMessageMap">
+		select
+      		*
+    	from
+      	(
+        	select rownum as rnum, message_list.* from
+          	(
+            	select
+            		m.msg_id, m.content, m.checked, TO_CHAR(m.msg_date, 'RR/MM/DD hh24:mi:ss') msgDate,
+              		e.emp_name,
+              		e.email
+            	from
+              		message m inner join employee e
+           		on
+           			m.sender = e.emp_id
+           		where
+              		m.emp_id = #empId#
+             	<include refid="searchMessage"/>
+            	order by
+            		msg_id desc
+
+          	) message_list
+        	where
+        		rownum <![CDATA[ <= ]]> #pageSet.listEndNum#
+		)
+    	where
+      		rnum > #pageSet.listStartNum#
+	</select>
+
+	<update id="updateReadMessage" parameterClass="String">
+		update
+			message
+		set
+	  		checked = 1
+		where
+	  		msg_id = #msgId#
+	</update>
+
+	<select id="selectSendMessageCount" parameterClass="Map" resultClass="long">
+	  	select
+	  		count(*)
+	    from
+	    	message m inner join employee e
+	    on
+	    	m.emp_id = e.emp_id
+	    where
+	    	sender = #empId#
+    	<include refid="searchMessage"/>
+	</select>
+
+	<resultMap class="Message" id="sendMessageMap">
+		<result property="msgId" column="msg_id"/>
+		<result property="content" column="content"/>
+		<result property="checked" column="checked"/>
+		<result property="msgDate" column="msgDate"/>
+		<result property="receiver.empName" column="emp_name"/>
+		<result property="receiver.email" column="email"/>
+	</resultMap>
+
+	<select id="selectSendMessageList" parameterClass="Map" resultMap="sendMessageMap">
+		select
+      		*
+    	from
+      	(
+        	select rownum as rnum, message_list.* from
+          	(
+            	select
+            		m.msg_id, m.content, m.checked, TO_CHAR(m.msg_date, 'RR/MM/DD hh24:mi:ss') msgDate,
+              		e.emp_name,
+              		e.email
+            	from
+              		message m inner join employee e
+           		 on
+	    			m.emp_id = e.emp_id
+	    		where
+	    			sender = #empId#
+             	<include refid="searchMessage"/>
+            	order by
+            		msg_id desc
+          	) message_list
+        	where
+        		rownum <![CDATA[ <= ]]> #pageSet.listEndNum#
+		)
+    	where
+      		rnum > #pageSet.listStartNum#
+	</select>
+
+</sqlMap>

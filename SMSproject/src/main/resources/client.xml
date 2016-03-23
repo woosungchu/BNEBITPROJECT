@@ -7,6 +7,7 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 
 	<typeAlias alias="Client" type="com.bnebit.sms.vo.Client" />
 	<typeAlias alias="PageSet" type="com.bnebit.sms.util.page.PageSet" />
+	
 	<sql id="searchClient">
 	 	where
 	 		is_delete = 0
@@ -46,6 +47,8 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 
 	</sql>
 
+
+
 	<select id="selectClientCount" parameterClass="PageSet" resultClass="long">
 		select count(*)
 		from client
@@ -67,7 +70,7 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 						address,
 						phone,
 						ceo,
-						TO_CHAR(reg_date, 'RR/MM/DD hh24:mi:ss') regDate
+						TO_CHAR(reg_date, 'RRRR/MM/DD hh24:mi:ss') regDate
 					from
 						client
 					<include refid="searchClient" />
@@ -79,4 +82,62 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 		where
 			rnum > #listStartNum#
 	</select>
+
+	<select id="selectClient" parameterClass="String" resultClass="Client">
+		select
+			client_id as clientId,
+			client_code as clientCode,
+			client_name as clientName,
+			second_name as secondName,
+			address,
+			phone,
+			ceo
+		from
+			client
+		where
+			client_id = #clientId#
+	</select>
+
+	<select id="selectClientCode" parameterClass="String" resultClass="String">
+		select
+			client_code
+		from
+			client
+		where
+			client_code = #clientCode#
+	</select>
+
+	<insert id="insertClient" parameterClass="Client">
+		insert into client(
+			client_id,
+			client_code,
+			client_name,
+			second_name,
+			address,
+			phone,
+			ceo
+		) values(
+			seq_client_id.nextval,
+			#clientCode#,
+			#clientName#,
+			#secondName#,
+			#address#,
+			#phone#,
+			#ceo#
+		)
+	</insert>
+
+	<update id="updateClient" parameterClass="Client">
+		update
+			client
+		set
+			client_name = #clientName#,
+		    ceo = #ceo#,
+		    second_name = #secondName#,
+		    address = #address#,
+		    phone = #phone#
+		where
+  			client_id = #clientId#
+	</update>
+
 </sqlMap>
