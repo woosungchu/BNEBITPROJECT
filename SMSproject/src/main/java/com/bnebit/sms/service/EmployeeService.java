@@ -65,6 +65,12 @@ public class EmployeeService implements Cryptable{
 	static final int TIME_LIMIT = 30 ; //30분
 	
 	
+	private ModelAndView goLoginForm(String message) {
+		mav.addObject("MESSAGE", message);
+		mav.setViewName("redirect:/");
+		return mav;
+	}
+	
 	public ModelAndView securePacket(HttpSession session){
 		Map<String,String> map = cryptUtil.encryptRSA(session);
 		mav.addObject("RSAModulus",map.get("RSAModulus"));
@@ -191,7 +197,7 @@ public class EmployeeService implements Cryptable{
 			}
 		}
 		log.info("세션에도 없고 쿠키에도 없음 ");
-		mav.setViewName("forward:/loginForm");
+		mav.setViewName("redirect:/loginForm");
 		return mav;
 	}
 	
@@ -370,12 +376,6 @@ public class EmployeeService implements Cryptable{
 		mav.setViewName("redirect:/");
 		return mav;
 		
-	}
-	
-	private ModelAndView goLoginForm(String message) {
-		mav.addObject("MESSAGE", message);
-		mav.setViewName("redirect:/");
-		return mav;
 	}
 	
 	public ModelAndView modifyProfileImg(MultipartFile file, HttpSession session) {

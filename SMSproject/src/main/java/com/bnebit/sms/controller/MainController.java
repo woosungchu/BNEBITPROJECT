@@ -34,9 +34,11 @@ public class MainController {
 
 	@RequestMapping()
 	public ModelAndView index(@CookieValue(value="JSESSIONID", defaultValue="-1") String cookieID, HttpServletResponse response,
-			HttpSession session , @RequestParam(value="MESSAGE", required=false , defaultValue="")String message){
+			HttpSession session , @RequestParam(value="MESSAGE", required=false)String message){
 		ModelAndView mav = employeeService.sessionCheck(cookieID,session);
-		mav.addObject("MESSAGE", message);
+		if(message != null){
+			mav.addObject("MESSAGE", message);
+		}
 		if("mainPage".equals(mav.getViewName())){
 			mav = mainService.followMe(session);
 		}
@@ -44,8 +46,11 @@ public class MainController {
 	}
 	
 	@RequestMapping(value="/loginForm")
-	public ModelAndView loginForm(HttpSession session){
+	public ModelAndView loginForm(HttpSession session, @RequestParam(value="MESSAGE", required=false)String message){
 		ModelAndView mav = employeeService.securePacket(session);
+		if(message != null){
+			mav.addObject("MESSAGE", message);
+		}
 		return mav;
 	}
 	
