@@ -1,0 +1,124 @@
+@CHARSET "UTF-8";
+
+a.btn {
+    text-decoration: none; font: menu;
+    display: inline-block; padding: 2px 8px;
+    background: ButtonFace; color: ButtonText;
+    border-style: solid; border-width: 2px;
+    border-color: ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight;
+}
+
+div.viewForm {
+    width: 650px;
+    height: 120px;
+    margin: 10px;
+    padding: 10px;
+    border: 3px solid #000000;
+    background-color: #FFFFFF;
+}
+
+div.inputForm {
+    width: 650px;
+    height: 400px;
+    margin: 10px;
+    padding: 10px;
+    border: 3px solid #000000;
+    background-color: #FFFFFF;
+}
+
+div.inputForm div {
+    margin: 5px;
+}
+
+div.searchAddr {
+	border:1px solid;
+	width:600px;
+	height:200px;
+	margin:10px;
+	position:relative
+}
+
+img.closeAddr {
+	cursor:pointer;
+	position:absolute;
+	right:0px;
+	top:-1px;
+	z-index:1
+}
+
+input.input {
+	/* margin-top: 5px; */
+	/* margin-left: 10px; */
+	border: 2px solid #000000;
+}
+
+.form-label {
+	background-color: #000000;
+	/* margin-right: 10px; */
+	width: 70px;
+	color: #FFFFFF;
+	text-decoration: none;
+	font: menu;
+    display: inline-block;
+    padding: 2px 8px;
+    border-style: solid;
+    border-width: 2px;
+    border-color: ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight;
+}
+
+.fLeft {
+	float: left;
+}
+
+.fRight {
+	float: right;
+}
+
+.taCenter {
+	text-align: center;
+}
+
+.page-title {
+	color: gray;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#message-box {
+	width: 60%;
+}
+
+.message-content {
+	width: 100%;
+	height: 82vh;
+	box-sizing: border-box;
+	resize: none;
+	vertical-align: top;
+}
+
+#select-box {
+	width: 30%;
+}
+
+.employee-select {
+	vertical-align: top;
+	width: 100%;
+	height: 75vh;
+	overflow-y:scroll;
+}
+
+.emp {
+	margin-bottom: 5px;
+}
+
+.select-list {
+	background-color: aqua;
+}
