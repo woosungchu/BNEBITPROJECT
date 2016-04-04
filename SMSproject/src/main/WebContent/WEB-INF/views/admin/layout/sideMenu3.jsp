@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<c:set var="contextPath" value="${pageContext.request.contextPath}"></c:set>
 <script type="text/javascript">
 	$(document).ready(function(){
 		$('.page').click(function(){			// 다른 목록 페이지 로 이동할 때 , 쿠키에 있던 체크 값 모두 해제
@@ -8,6 +10,10 @@
 			{
 				$.removeCookie(cookie);
 			}
+			$.ajax({
+				url:'${contextPath}/admin/report/clearHistory',
+				type:'post'
+    		});
 		});
 	});
 </script>
@@ -28,20 +34,19 @@
 
     <li><a href="#">부서</a>
         <ul>
-              <li><a class="page" href="/tiles/deptList">부서 목록</a></li>
+              <li><a class="page" href="/admin/dept/deptList">부서 목록</a></li>
         </ul>
     </li>
 
     <li><a href="#">거래처</a>
         <ul>
-              <li><a class="page" href="#">거래처 목록</a></li>
+              <li><a class="page" href="${contextPath }/admin/client/clientList">거래처 목록</a></li>
         </ul>
     </li>
 
     <li><a href="#">메시지</a>
         <ul>
-            <li><a class="page" href="#">메시지 보내기</a></li>
-            <li><a class="page" href="#">받은 메시지함</a></li>
+            <li><a class="page" href="${contextPath }/admin/message/messageList">보낸 메시지함</a></li>
         </ul>
     </li>
 </ul>

@@ -3,7 +3,9 @@ package com.bnebit.sms.dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ibatis.SqlMapClientTemplate;
@@ -47,6 +49,11 @@ public class EmployeeDAO {
 		return list;
 	}
 	
+	public ArrayList<Employee> selectSalesmanList(String deptId) {
+		ArrayList<Employee> list = ( ArrayList<Employee>)
+				sqlMapClientTemplate.queryForList("employee.selectSalesmanList", deptId);
+		return list;
+	}
 
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	@SuppressWarnings("unchecked")
@@ -87,5 +94,22 @@ public class EmployeeDAO {
 		return (ArrayList<String>) emailList;
 	}
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
+
+	public Employee selectEmpById(String empId) {
+		Employee employee = (Employee) sqlMapClientTemplate.queryForObject("employee.selectEmp", empId);
+		return employee;
+	}
+
+	public ArrayList<Employee> searchEmployee(String deptId, String[] keywordList, int rownum, int page) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("deptId", deptId);
+		map.put("keywordList", keywordList);
+		map.put("rownum", rownum); //늘어날 list 수
+		map.put("page", page);//지금 마지막 list
+
+		ArrayList<Employee> empList = (ArrayList<Employee>) 
+				sqlMapClientTemplate.queryForList("employee.searchEmployee",map);
+		return empList;
+	}
 
 }

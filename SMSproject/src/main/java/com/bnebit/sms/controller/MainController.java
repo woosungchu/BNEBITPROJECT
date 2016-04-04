@@ -33,11 +33,10 @@ public class MainController {
 	private Logger log = Logger.getLogger(getClass());
 
 	@RequestMapping()
-	public ModelAndView index(@CookieValue(value="JSESSIONID", defaultValue="-1") String cookieID,
-			HttpServletRequest request, HttpServletResponse response,
-			HttpSession session){
-//		session.removeAttribute("LOGIN_USER");
-		ModelAndView mav = employeeService.sessionCheck(cookieID,request,session);
+	public ModelAndView index(@CookieValue(value="JSESSIONID", defaultValue="-1") String cookieID, HttpServletResponse response,
+			HttpSession session , @RequestParam(value="MESSAGE", required=false , defaultValue="")String message){
+		ModelAndView mav = employeeService.sessionCheck(cookieID,session);
+		mav.addObject("MESSAGE", message);
 		if("mainPage".equals(mav.getViewName())){
 			mav = mainService.followMe(session);
 		}
@@ -51,9 +50,8 @@ public class MainController {
 	}
 	
 	@RequestMapping(value="/login")
-	public ModelAndView login(Employee inputEmployee, HttpSession session,
-			HttpServletRequest request, HttpServletResponse response){
-		ModelAndView mav = employeeService.login(inputEmployee, session, request, response);
+	public ModelAndView login(Employee inputEmployee, HttpSession session, HttpServletResponse response){
+		ModelAndView mav = employeeService.login(inputEmployee, session, response);
 		return mav;
 	}
 	
@@ -95,9 +93,33 @@ public class MainController {
 	
 	@RequestMapping("/planCheck")
 	public ModelAndView planCheck(String planId , String checked){
-		System.out.println(planId + checked);
 		ModelAndView mav = mainService.planCheck(planId, checked);
 		return mav;
 	}
+	
+	@RequestMapping("/staffInfo")
+	public ModelAndView staffInfo(String empId, HttpSession session){
+		ModelAndView mav = mainService.staffInfo(empId, session);
+		return mav;
+	}
+	
+	@RequestMapping("/countPlan")
+	public ModelAndView countPlan(HttpSession session){
+		ModelAndView mav = mainService.countPlan(session);
+		return mav;
+	}
+	
+	@RequestMapping("/searchResult")
+	public ModelAndView iframeDoc(String keyword, HttpSession session){
+		ModelAndView mav = mainService.searchKeyword(keyword, session);
+		return mav;
+	}
+	//ajax
+	@RequestMapping("/morePage")
+	public ModelAndView morePage(String list, int page, String keyword, HttpSession session){
+		ModelAndView mav = mainService.morePage(list, keyword, page, session);
+		return mav;
+	}
+	
 	
 }

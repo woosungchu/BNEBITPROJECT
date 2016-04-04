@@ -6,7 +6,7 @@
 <div class="row">
 	<h1 class="text-center">거래처 등록</h1>
 	<div class="row">
-			<form id="clientForm" class="form-horizontal" method="post">
+			<form id="clientForm" class="form-horizontal" action="${contextPath }/rest/client/insertClient" method="post">
 			<%-- <input type="hidden" id="sortName" name="sortName" value="${pageSet.sortName}"/>
 			<input type="hidden" id="sortBy" name="sortBy" value="${pageSet.sortBy}"/> --%>
 					<div class="form-group">
@@ -50,7 +50,7 @@
 							<input type="button" id="searchAddrBtn" class="btn btn-default form-control btn-xs" value="주소 검색" />
 						</div>
 						<div class="col-xs-5">
-							<input type="text" class="form-control" id="address" name="address"/>
+							<input type="text" class="form-control" id="address" name="address" readonly="readonly"/>
 						</div>
 					</div>
 					<div class="form-group">
@@ -68,11 +68,11 @@
 				</div> -->
 		</div>
 	</div>
-<div id="searchAddrDiv" style="display:none;position:fixed;overflow:hidden;z-index:1;-webkit-overflow-scrolling:touch;">
-	<img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnCloseLayer" style="cursor:pointer;position:absolute;right:-3px;top:-3px;z-index:1" alt="닫기 버튼">
+<div id="searchAddrDiv">
+	<img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnCloseLayer" alt="닫기 버튼">
 </div>
 <script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
-<script src="//apis.daum.net/maps/maps3.js?apikey=fb345b9773526502503fab49b6aa7fd9&libraries=services"></script>
+<!-- <script src="//apis.daum.net/maps/maps3.js?apikey=fb345b9773526502503fab49b6aa7fd9&libraries=services"></script> -->
 <script type="text/javascript" src="${contextPath }/assets/js/utils.js"></script>
 <script type="text/javascript" src="${contextPath }/assets/js/client.js"></script>
 <script type="text/javascript">

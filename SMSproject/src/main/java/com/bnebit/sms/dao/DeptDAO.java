@@ -30,7 +30,7 @@ public class DeptDAO {
 	}
 
 	public void deleteDeptList(String[] ids) throws SQLException {
-		sqlMapClientTemplate.delete("dept.deleteDailyReportList",ids);
+		sqlMapClientTemplate.delete("dept.deleteDeptList",ids);
 	}
 
 	public void updateDept(Dept dept) throws SQLException {

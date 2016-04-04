@@ -164,31 +164,25 @@
 		if(dateNow<10){
 			dateNow="0"+dateNow;
 		}
-		var nowDate=yearNow+"0"+monthNow+""+dateNow;
+		var nowDate=yearNow+""+monthNow+""+dateNow;
 		<c:forEach var="daily" items="${dailyPlanSalesList}">
 			var planDate="${daily.planDate}";
 			var strArray=planDate.split("/");
 			var year="20"+strArray[0];
 			var month=strArray[1];
-			if(month<10){
-				month="0"+month;
-			}
 			var date=strArray[2];
-			if(date<10){
-				date="0"+date;
-			}
 			var dateString=year+""+month+""+date;
 			var span=document.getElementById("btn_${daily.planDate}");
 			if(nowDate>dateString){
-				span.innerHTML+="<a href=\"\" class=\"btn btn-link\" role=\"button\">일일 보고 조회</a>"
+				span.innerHTML+="<a href=\"viewDailyReport?empId=${weeklyPlan.employee.empId}&planDate=${daily.planDate}\" class=\"btn btn-link\" role=\"button\">일일 보고 조회</a>"
 			}else if(nowDate==dateString){
 				if("${LOGIN_USER.position}"=="Manager"){
-					span.innerHTML+="<a href=\"\" class=\"btn btn-link\" disabled=\"disabled\" role=\"button\">일일 보고 조회</a>"
+					span.innerHTML+="<a href=\"viewDailyReport?empId=${weeklyPlan.employee.empId}&planDate=${daily.planDate}\" class=\"btn btn-link\" disabled=\"disabled\" role=\"button\">일일 보고 조회</a>"
 				}else{
-					span.innerHTML+="<a href=\"\" class=\"btn btn-link\" role=\"button\">일일 보고 작성</a>"
+					span.innerHTML+="<a href=\"/dailyReport/insertDailyReportForm?empId=${weeklyPlan.employee.empId}&planDate=${daily.planDate}\" class=\"btn btn-link\" role=\"button\">일일 보고 작성</a>"
 				}
 			}else{
-				span.innerHTML+="<a href=\"\" class=\"btn btn-link\" disabled=\"disabled\" role=\"button\">일일 보고 조회</a>"
+				span.innerHTML+="<a href=\"viewDailyReport?empId=${weeklyPlan.employee.empId}&planDate=${daily.planDate}\" class=\"btn btn-link\" disabled=\"disabled\" role=\"button\">일일 보고 조회</a>"
 			}
 			//alert(year);
 			//var year

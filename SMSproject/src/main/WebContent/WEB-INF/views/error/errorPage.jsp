@@ -14,6 +14,8 @@ h2 {
 }
 img{
 	position : absolute;
+	top : 100px;
+	left : 30px;
 }
 h5{
 	position : absolute;
@@ -28,28 +30,38 @@ h5{
 	
 	<!-- script -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>	
+<script type="text/javascript" src="http://jsgetip.appspot.com"></script>
 <script type="text/javascript">
+var count = 0,
+	distance = 500;
 $(document).ready(function() {
-    $(document).keydown(function(key) {
-        switch(parseInt(key.which,10)) {
-   // Left arrow key pressed
-   case 37:
-    $('img').animate({left: "-=10px"}, 'fast');
-    break;
-   case 38:
-       $('img').animate({top: "-=10px"}, 'fast');
-    break;
-   // Right Arrow Pressed
-   case 39:
-    $('img').animate({left: "+=10px"}, 'fast');
-    break;
-   // Down Arrow Pressed
-   case 40:
-    $('img').animate({top: "+=10px"}, 'fast');
-    break;
-  }
- });
+	$('img').hover(function(){
+		switch (count%4) {
+		case 0:
+			$(this).animate({left : '+='+distance},100);
+			break;
+		case 1:
+			$(this).animate({top : '+='+distance},100);
+			break;
+		case 2:
+			$(this).animate({left : '-='+distance},100);
+			break;
+		case 3:
+			$(this).animate({top : '-='+distance},100);
+			break;
+		}
+		count++;
+		if(distance >50){
+			distance -= 10;			
+		}else{
+			location.href= "http://"+ip()+"/";
+		}
+		
+	});
 });
+$.getJSON("http://jsonip.com?callback=?", function (data) {
+	   alert("Your ip: " + data.ip);
+	});
 </script>
 </body>
 </html>

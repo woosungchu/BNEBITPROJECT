@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bnebit.sms.service.MessageService;
@@ -22,11 +23,13 @@ public class MessageRestController {
 	private MessageService messageService;
 
 	@RequestMapping(value = "/insertMessage", method = RequestMethod.POST)
-	public RestResult insertMessage(Message message) {
+	public RestResult insertMessage(Message message, HttpSession session,
+			@RequestParam("receiverIdList[]") List<String> receiverIdList, @RequestParam("receiverEmailList[]") List<String> receiverEmailList) {
 		RestResult result = new RestResult();
 		String code = "success";
 		try {
-			messageService.insertMessage(message);
+			message.setSender((Employee) session.getAttribute("LOGIN_USER"));
+			messageService.insertMessage(message, receiverIdList, receiverEmailList);
 		} catch(Exception e) {
 			code = "fail";
 			result.setMessage("server error!!! 관리자에게 문의바랍니다");

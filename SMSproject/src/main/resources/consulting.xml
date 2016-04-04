@@ -16,23 +16,35 @@
 		<result column="phone" property="client.phone"/>
 		<result column="address" property="client.address"/>
 	</resultMap>
-		
+
 	<select id="selectContract" parameterClass="java.util.HashMap" resultMap="contractMap">
 		<![CDATA[
-		select cl.CLIENT_NAME, cl.SECOND_NAME, cl.CEO, d.DEPT_NAME, 
+		select cl.CLIENT_NAME, cl.SECOND_NAME, cl.CEO, d.DEPT_NAME,
 		e.POSITION, e.EMP_NAME, cl.PHONE, cl.ADDRESS
 	       from consulting co inner join daily_report dr
 	       on co.DAILY_REPORT_ID = dr.DAILY_REPORT_ID
-	       inner join client cl 
+	       inner join client cl
 	       on cl.client_id = co.client_id
 	       inner join employee e
 	       on e.emp_id = dr.emp_id
 	       inner join dept d
 	       on e.dept_id = d.dept_id
 	       where co.rowid in (select max(rowid) from consulting group by CLIENT_ID)
-	         and e.emp_id = #empId#  and rownum <= #rownum#
+	         and rownum <= #rownum#
+	    ]]>
+	    <isNotEmpty property="empId">
+	    	<![CDATA[
+		         and e.emp_id = #empId#
+	    	]]>
+	    </isNotEmpty>
+	    <isNotEmpty property="deptId">
+	    	<![CDATA[
+		         and e.dept_id = #deptId#
+	    	]]>
+	    </isNotEmpty>
+	    <![CDATA[
 	       order by consulting_id desc
-	       ]]>
+	    ]]>
 	</select>
 
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
@@ -72,10 +84,16 @@
 		              <isNotEmpty property="searchField">
 		                <isNotEmpty property="searchString" prepend="and">
 		                  <isEqual property="searchOper" compareValue="eq">
-		                    $searchField$ like '%' || #searchString# || '%'
+		                      $searchField$ like #searchString#
 		                  </isEqual>
 		                  <isEqual property="searchOper" compareValue="ne">
-		                    $searchField$ not like '%' || #searchString# || '%'
+		                      $searchField$ not like #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="in">
+		                      $searchField$ like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ni">
+		                      $searchField$ not like '%' || #searchString# || '%'
 		                  </isEqual>
 		                  <isEqual property="searchOper" compareValue="ge">
 		                    $searchField$ <![CDATA[ >= ]]> #searchString#
@@ -119,11 +137,17 @@
 				<isNotEmpty property="searchField">
 					<isNotEmpty property="searchString" prepend="and">
 						<isEqual property="searchOper" compareValue="eq">
-							$searchField$ like '%' || #searchString# || '%'
-						</isEqual>
-						<isEqual property="searchOper" compareValue="ne">
-							$searchField$ not like '%' || #searchString# || '%'
-						</isEqual>
+	                        $searchField$ like #searchString#
+	                    </isEqual>
+	                    <isEqual property="searchOper" compareValue="ne">
+	                        $searchField$ not like #searchString#
+	                    </isEqual>
+	                    <isEqual property="searchOper" compareValue="in">
+	                        $searchField$ like '%' || #searchString# || '%'
+	                    </isEqual>
+	                    <isEqual property="searchOper" compareValue="ni">
+	                        $searchField$ not like '%' || #searchString# || '%'
+	                    </isEqual>
 						<isEqual property="searchOper" compareValue="ge">
 							$searchField$ <![CDATA[ >= ]]> #searchString#
 						</isEqual>
@@ -140,6 +164,8 @@
 				</isNotEmpty>
 			</isEqual>
 	</select>
+
+	<!-- 해당 상담일지를 조회  -->
 
 	<!-- 전체 상담일지 목록에서 선택한 상담일지들( 체크박스 체크된 )을 모두 삭제 -->
 	<delete id="deleteConsultingList" parameterClass="[Ljava.lang.String;">
@@ -160,22 +186,6 @@
 
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Leader & Worker 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 
-	<!-- selectConsultingListMap -->
-	<resultMap class="HashMap" id="selectConsultingListMap">
-		<result property="consultingId" column="consulting_id"/>
-		<result property="title" column="title"/>
-		<result property="imgName" column="img_name"/>
-	</resultMap>
-
-	<!-- 상담일지 목록 -->
-	<select id="selectConsultingListWorker" resultMap="selectConsultingListMap">
-		select c.consulting_id, title, img_name
-		from consulting c left outer join consulting_img ci
-		on c.consulting_id = ci.consulting_id
-		where daily_report_id = #dailyReportId#
-		order by consulting_id desc
-	</select>
-
 	<!-- consultingViewMap -->
 	<resultMap class="HashMap" id="consultingViewMap">
 		<result property="consultingId" column="consulting_id"/>
@@ -183,6 +193,7 @@
 		<result property="deptName" column="dept_name"/>
 		<result property="regDate" column="reg_date"/>
 		<result property="title" column="title"/>
+		<result property="clientId" column="client_id"/>
 		<result property="clientCode" column="client_code"/>
 		<result property="clientName" column="client_name"/>
 		<result property="ceo" column="ceo"/>
@@ -190,11 +201,88 @@
 		<result property="address" column="address"/>
 		<result property="content" column="content"/>
 		<result property="imgName" column="img_name"/>
+		<result property="originImgName" column="origin_name"/>
 	</resultMap>
 
-	<!-- 상담일지 조회 -->
-	<select id="selectConsultingView" parameterClass="consulting" resultMap="consultingViewMap">
-		select c.consulting_id, dept.dept_id, dept_name, c.reg_date, c.title, client_code, client_name, ceo, second_name, address, c.content, ci.img_name
+	<resultMap class="consulting" id="consultingSearchMap">
+		<result property="consultingId" column="consulting_id"/>
+		<result property="dailyReport.dailyReportId" column="daily_report_id"/>
+		<result property="dailyReport.regDate" column="reg_date"/>
+		<result property="dailyReport.employee.empId" column="emp_id"/>
+		<result property="dailyReport.employee.empName" column="emp_name"/>
+		<result property="dailyReport.employee.position" column="position"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="client.clientName" column="client_name"/>
+		<result property="client.secondName" column="second_name"/>
+		<result property="client.ceo" column="ceo"/>
+	</resultMap>
+
+	<!-- consulting -->
+	<select id="searchConsulting" parameterClass="map" resultMap="consultingSearchMap">
+     <![CDATA[
+     select b.* from
+      (select e.EMP_ID, e.EMP_NAME, e.position, dr.daily_report_id, dr.reg_date, co.consulting_id, co.title, co.content, cl.client_name, cl.second_name, cl.ceo,
+     	rownum as rnum,
+      ]]>
+       <iterate property="keywordList" conjunction=" + " >
+         <![CDATA[
+         case when instr( e.emp_name , #keywordList[]# ) <>0 then 2 else 0 end +
+         case when instr( co.title , #keywordList[]# ) <>0 then 2 else 0 end +
+             case when instr( co.content , #keywordList[]# ) <>0 then 1 else 0 end +
+             case when instr( cl.client_name , #keywordList[]# ) <>0 then 3 else 0 end +
+             case when instr( cl.second_name , #keywordList[]# ) <>0 then 1 else 0 end +
+             case when instr( cl.ceo , #keywordList[]# ) <>0 then 3 else 0 end
+         ]]>
+       </iterate>
+     <![CDATA[
+       as relas
+     from employee e inner join daily_report dr
+        on e.emp_id = dr.emp_id
+        inner join consulting co
+        on co.daily_report_id = dr.daily_report_id
+        inner join client cl
+        on co.client_id = cl.client_id
+        inner join dept d
+           on e.dept_id = d.dept_id
+           where e.state = 'ACTIVE' and
+     ]]>
+     	 <isNotEmpty property="empId">
+     	 	<![CDATA[
+		       e.EMP_ID = #empId# and
+		    ]]>
+	     </isNotEmpty>
+	     <isNotEmpty property="deptId">
+	     	<![CDATA[
+	     	   dr.reg_date < trunc(sysdate) and
+		       e.dept_ID = #deptId# and
+		    ]]>
+	      </isNotEmpty>
+       <iterate property="keywordList" open="(" conjunction=") or (" close=")">
+         <![CDATA[
+          e.emp_name like '%' || #keywordList[]# || '%'
+          or
+          co.title like '%' || #keywordList[]# || '%'
+          or
+          co.content like '%' || #keywordList[]# || '%'
+          or
+          cl.client_name like '%' || #keywordList[]# || '%'
+          or
+          cl.second_name like '%' || #keywordList[]# || '%'
+          or
+          cl.ceo like '%' || #keywordList[]# || '%'
+         ]]>
+       </iterate>
+    <![CDATA[
+     order by relas desc) b
+    where rnum between #page# and (#page# + #rownum# -1)
+    ]]>
+   </select>
+
+	<!-- 상담일지 목록 및 조회 -->
+	<select id="selectConsultingListWorker" parameterClass="HashMap" resultMap="consultingViewMap">
+		select c.consulting_id, dept.dept_id, dept_name, to_char(c.reg_date,'YYYY.MM.DD HH24:MI:SS') reg_date,
+		c.title, c.client_id, client_code, client_name, ceo, second_name, address, c.content, ci.img_name, origin_name
 		from
 			dept inner join employee
 			on dept.dept_id = employee.dept_id
@@ -206,14 +294,22 @@
 			on c.client_id = client.client_id
 			left outer join consulting_img ci
 			on c.consulting_id = ci.consulting_id
-		where c.reg_date = #regDate#
-		and c.consulting_id = #consultingId#
+		<isNotEmpty property="dailyReportId">
+		where daily_report.daily_report_id = #dailyReportId#
+		order by consulting_id desc
+		</isNotEmpty>
+		<isNotEmpty property="consultingId">
+		where c.consulting_id = #consultingId#
+		</isNotEmpty>
 	</select>
 
 	<!-- 상담일지 작성 -->
 	<insert id="insertConsulting" parameterClass="consulting">
+		<selectKey keyProperty="consultingId" resultClass="String" type="pre">
+			select seq_consulting_id.nextval as consultingId from dual
+		</selectKey>
 		insert into consulting (consulting_id, title, reg_date, content, client_id, daily_report_id)
-		values (seq_consulting_id.nextval, #title#, sysdate, #content#, #client.clientId#, #dailyReport.dailyReportId#)
+		values (#consultingId#, #title#, sysdate, #content#, #client.clientId#, #dailyReport.dailyReportId#)
 	</insert>
 
 	<!-- 상담일지 파일추가 -->
@@ -232,12 +328,15 @@
 		 from client
 		 where client_code = #client.clientCode#
 		)
-		where consulting_id = #consultingId# and exists
+		where consulting_id = #consultingId#
+		<isNotEmpty property="dailyReport.dailyReportId">
+		and exists
 		(
 		 select 1
 		 from daily_report
 		 where daily_report_id = #dailyReport.dailyReportId# and feedback is null
 		)
+		</isNotEmpty>
 	</update>
 
 	<!-- 상담일지 파일수정 -->
@@ -245,7 +344,7 @@
 		update consulting_img
 		set img_name = #imgName#,
 		origin_name = #originName#
-		where consulting_img_id = #consultingImgId#
+		where consulting_id = #consultingId#
 	</update>
 
 	<!-- 상담일지 삭제 -->
@@ -262,7 +361,7 @@
 	<!-- 상담일지 파일삭제 -->
 	<delete id="deleteConsultingImg" parameterClass="consultingImg">
 		delete from consulting_img
-		where consulting_img_id = #consultingImgId#
+		where consulting_id = #consultingId#
 	</delete>
 
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->

@@ -1,5 +1,6 @@
 package com.bnebit.sms.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,24 +23,26 @@ public class MessageService {
 	@Autowired
 	private MessageDAO messageDAO;
 
-	public void insertMessage(Message message) {
-		String receiverEmpIds = message.getReceiver().getEmpId();
-		String[] receiverEmpIdArr = receiverEmpIds.split(",");
-		for (String empId : receiverEmpIdArr) {
+	public void insertMessage(Message message, List<String> receiverIdList, List<String> receiverEmailList) {
+		List<Employee> receiverEmpList = new ArrayList<>();
+
+		for (int i = 0; i < receiverIdList.size(); i++) {
 			Employee receiver = new Employee();
-			receiver.setEmpId(empId);
+			receiver.setEmpId(receiverIdList.get(i));
+			receiver.setEmail(receiverEmailList.get(i));
 			message.setReceiver(receiver);
 			messageDAO.insertMessage(message);
+			receiverEmpList.add(receiver);
 		}
 
-		notificationReceiver(receiverEmpIdArr);
+		notificationReceiver(receiverEmpList);
 	}
 
-	private void notificationReceiver(String[] receiverEmpIdArr) {
-		List<String> receiverEmailList = messageDAO.selectReceiverEmailList(receiverEmpIdArr);
-		for (int i = 0; i < receiverEmpIdArr.length; i++) {
-			int count = messageDAO.selectUncheckedMessageConut(receiverEmpIdArr[i]);
-			template.convertAndSend("/newMessage/notice/" + receiverEmailList.get(i), count);
+	private void notificationReceiver(List<Employee> receiverEmpList) {
+
+		for (Employee receiver : receiverEmpList) {
+			int count = messageDAO.selectUncheckedMessageConut(receiver.getEmpId());
+			template.convertAndSend("/newMessage/notice/" + receiver.getEmail(), count);
 		}
 	}
 
@@ -83,6 +86,12 @@ public class MessageService {
 
 	public void updateReadMessage(String msgId) {
 		messageDAO.updateReadMessage(msgId);
+	}
+
+	public void deleteMessageList(List<String> messageIdList) {
+		for (String msgId : messageIdList) {
+			messageDAO.deleteMessageList(msgId);
+		}
 	}
 
 }

@@ -76,13 +76,14 @@ input:focus, textarea:focus {
 			</div> <!-- /.modal-content -->
 		</div> <!-- /.modal-dialog -->
 	</div> <!-- /.modal -->
-	<script type="text/javascript"
-		src="${contextPath}/assets/calendar/lib/moment.min.js"></script>
-	<script type="text/javascript"
-		src="${contextPath}/assets/calendar/fullcalendar.js"></script>
-	<script src="http://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="${contextPath}/assets/calendar/lib/moment.min.js"></script>
+	<script type="text/javascript" src="${contextPath}/assets/calendar/fullcalendar.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
+
+			if("${error}"!=""){
+				alert("${error}");
+			}
 
 			if("Manager"=="${LOGIN_USER.position}"){
 				calendarEventManager();
@@ -110,10 +111,11 @@ input:focus, textarea:focus {
 								className : "EVENT"},
 							</c:forEach>
 							<c:forEach var="daily" items="${dailyPlanList}">
-									{title : "${daily.weeklyPlan.employee.empName}",
+									{
 									start : "${daily.planDate}".substring(0,10),
 									className : "PLAN",
 									empId : "${daily.weeklyPlan.employee.empId}",
+									title : "${daily.weeklyPlan.employee.empName}",
 									id : "PLAN"},
 							</c:forEach>
 								{
@@ -125,7 +127,10 @@ input:focus, textarea:focus {
 						eventClick : function(event){
 							if(event.className=="PLAN"){
 								$.ajax({
-									url:"/calendarGetPlan?empId="+event.empId,
+									url:"/calendarGetPlan",
+									data:{
+										"empId":event.empId
+									},
 									type:"post",
 									dataType:'json',
 									success:function(data){
@@ -169,7 +174,10 @@ input:focus, textarea:focus {
 
 		function checkDate(date){
 			$.ajax({
-				url:"/checkDailyPlan?empId=${LOGIN_USER.empId}&planDate="+date,
+				url:"/checkDailyPlan",
+				data:{
+					"planDate":date
+				},
 				type:"post",
 				dataType:"json",
 				success:function(data){
@@ -196,8 +204,7 @@ input:focus, textarea:focus {
 
 
 		function calendarEvent() {
-			var calendar = $('#calendar')
-					.fullCalendar(
+			var calendar = $('#calendar').fullCalendar(
 							{
 								height : 650,
 								header : {
@@ -225,8 +232,6 @@ input:focus, textarea:focus {
 												rendering:'background'
 											}],
 								fixedWeekCount : true,
-								eventClick : function(event) {
-								},
 								eventLimit : true,
 								dayClick : function(date, jsEvent, view) {
 									var dateString=new Date(date);
@@ -244,10 +249,24 @@ input:focus, textarea:focus {
 											day="0"+day;
 										}
 										var monday=year+"/"+month+"/"+day;
-										location.href="/checkWeeklyPlan?empId=${LOGIN_USER.empId}&monday="+monday;
+										$.ajax({
+											url:"/checkWeeklyPlanId",
+											type:'post',
+											data:{
+												"monday":monday
+											},
+											success:function(data){
+												if(data==""){
+													alert("주간계획이 존재하지 않습니다.")
+												}else{
+													location.href="/checkWeeklyPlan?monday="+monday;
+												}
+											}
+										});
 									}else{
 										document.getElementById('modalInputDate').value = date.format();
-										checkDate(date.format());
+										var dateString=date.format('YY/MM/DD');
+										checkDate(dateString);
 										$('#calendarModal').modal();
 									}
 								},
@@ -262,19 +281,23 @@ input:focus, textarea:focus {
 				$('#calendarModal').modal();
 			} else {
 				$.ajax({
-						url : "/inputPlanCalendar?empId=${LOGIN_USER.empId}&planDate=" + planDate + "&content=" + content,
+						url : "/inputPlanCalendar",
+						data : {
+							"empId":"${LOGIN_USER.empId}",
+							"planDate":planDate,
+							"content":content
+						},
 						type : "post"
 					});
 			}
 			location.reload();
 		}
 
-		$('table.calendar > tbody > tr > td:nth-child(-n+2)')
-		.addClass('fc-sat');
 	</script>
 </body>
 <style type='text/css'>
 	.fc-sat { color:blue; }
 	.fc-sun { color:red;  }
+	.container {width: 960px; margin: 0 auto; overflow: hidden; height:910px;}
 </style>
 </html>

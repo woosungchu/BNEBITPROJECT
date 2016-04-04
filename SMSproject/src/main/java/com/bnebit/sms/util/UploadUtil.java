@@ -12,7 +12,7 @@ public class UploadUtil {
 	public static void uploadHelper(MultipartFile file, String fileName){
 		System.out.println("처음 fileName " + fileName);
 		if(file!=null && !file.isEmpty())
-		{	
+		{
 			File saveFile = new File(UPLOAD_PATH+fileName);
 			try {
 				file.transferTo(saveFile);
@@ -27,16 +27,5 @@ public class UploadUtil {
 		deleteFile.delete();
 	}
 
-	@Deprecated
-	public static void uploadHelper(MultipartFile file, String fileName, String originName){
-//		if(file!=null && !file.isEmpty())
-//		{
-//			File saveFile = new File(UPLOAD_PATH+fileName);
-//			try {
-//				file.transferTo(saveFile);
-//			} catch (IllegalStateException | IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-	}
+	//@Deprecated
 }

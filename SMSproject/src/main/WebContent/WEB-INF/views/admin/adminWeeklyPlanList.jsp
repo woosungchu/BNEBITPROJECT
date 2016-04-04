@@ -3,11 +3,19 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"></c:set>
 
-<html>
-	<head>
 		<title>adminWeeklyPlanList</title>
 		<link rel="stylesheet" type="text/css" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css"/>
 		<link rel="stylesheet" type="text/css" media="screen" href="${contextPath}/assets/css/ui.jqgrid.css"/>
+		<link rel="stylesheet" type="text/css" media="screen" href="${contextPath}/assets/css/admin-common.css"/>
+
+		<span style="font-family: 'Poiret One',cursive;font-size: 50px;color: yellow; padding-bottom: 25px;">Weekly Plan List</span>
+		<table id="grid"></table>
+		<div  id="pager"></div>
+		<p align="left">
+			<button id="resetSelect" class="basicButton">선택 초기화</button>
+			<button id="removeSelectedList" class="basicButton">선택 목록 삭제</button>
+		</p>
+
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
 		<script src="${contextPath}/assets/js/grid.locale-kr.js" type="text/javascript"></script>
 		<script src="${contextPath}/assets/js/jquery.jqgrid.src.js" type="text/javascript"></script>
@@ -40,14 +48,20 @@
 	                     		],
 	          		colModel : [
 	                    		{ name : 'weeklyPlanId',    hidden:true},
-	                    		{ name : 'title',       width:400,  align:'center', index:'c.title' , formatter:custom_link },
-	                    		{ name : 'monday', 	  width:300,  align:'center', index:'c.monday'},
-	                    		{ name : 'memberName', 	  width:150,  align:'center', index:'e.member_name'},
-	                    		{ name : 'managerName', width:150,  align:'center', index:'e.manager_name'},
-	                    		{ name : 'deptName',  	      width:200,  align:'center', index:'e.dept_name'},
-	                    		{ name : 'checked',  	  	  width:200,  align:'center', index:'c.checked'},
-	                    		{ name : 'regDate',  	  	  width:300,  align:'center', index:'c.reg_date'}
+	                    		{ name : 'title',       width:400,  align:'center', index:'c.title', searchoptions:{sopt:['eq','ne','in','ni']}, formatter:custom_link },
+	                    		{ name : 'monday', 	  width:300,  align:'center', index:'c.monday', searchoptions:{sopt:['eq','ne','in','ni','ge','le','gt','lt']}},
+	                    		{ name : 'memberName', 	  width:150,  align:'center', index:'e.member_name', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'managerName', width:150,  align:'center', index:'e.manager_name', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'deptName',  	      width:200,  align:'center', index:'e.dept_name', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'checked',  	  	  width:200,  align:'center', index:'c.checked', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'regDate',  	  	  width:300,  align:'center', index:'c.reg_date', searchoptions:{sopt:['eq','ne','in','ni','ge','le','gt','lt']}}
 	            	],
+	            	search : true,
+	            	postData : {
+	            		searchField : historyPageObject == null ? '' : historyPageObject.searchField,
+	            		searchString : historyPageObject == null ? '' : historyPageObject.searchString,
+	            	    searchOper : historyPageObject == null ? '' : historyPageObject.searchOper
+	            	},
 	            	caption: '주간계획 목록',
 	            	rowNum : historyPageObject == null ? 30 : historyPageObject.rows,
 	          		rowList: [2, 3, 5, 10, 15, 20, 25, 30],
@@ -67,6 +81,9 @@
 	          		multiSort : true,
 	          	    sortname : historyPageObject == null ? '' : historyPageObject.sidx, /* 처음 정렬될 컬럼 */
 	          		sortorder : historyPageObject == null ? 'asc' : historyPageObject.sord,  /* 정렬방법 (asc/desc) */
+	          		search : true,
+	          		//postData: { filters:'{"groupOp":"AND","rules":[{"field":"e.memberName","op":"eq","data":"엘사"}]}' },
+	          		//search : historyPageObject == null ? false : historyPageObject.search,
 					//////////////////////
 					loadError: function (jqXHR, textStatus, errorThrown) {
 						if (jqXHR.status == '406') {
@@ -89,24 +106,23 @@
 	             		});
 	                	$('#removeSelectedList').click(function(){
 	                		var idList = new Array();	// 선택 되어진 id 들을 저장할 배열.
-	                		var idsCount = 0;		// 선택 된 id 의 배열 인덱스.
 							var cookies = $.cookie();
 							for(var cookie in cookies)
 							{
-								idList[idsCount] = $.cookie(cookie);
-								idsCount = idsCount + 1;
+								idList.push(cookie);
 								$.removeCookie(cookie);
 							}
-							idList[idList.length-1] = 0; // 마지막 쿠키는 JESSIONID 값으로 불필요 함. JSESSIONID : 고유한 쿠키의 ID 값.
-	                		$.ajaxSettings.traditional = true;
+							idList.pop(); // 마지막 쿠키는 JESSIONID 값으로 불필요 함. JSESSIONID : 고유한 쿠키의 ID 값.
 	                		$.ajax({
 								url:'${contextPath}/admin/report/deleteWeeklyPlanList',
 								data:{
 									'ids':idList
 								},
-								type:'get'
+								type:'post',
+								success: function() {
+									window.location.reload();	// 페이지 새로 고침
+								}
 	                		});
-	                		window.location.reload();	// 페이지 새로 고침
 	                	});
 	                },
 	          		onCellSelect: function(rowid, iCol,cellcontent, e){
@@ -150,10 +166,11 @@
 						   {}, // default settings for edit
 						   {}, // default settings for add
 						   {}, // delete
-						   {closeOnEscape: true,
-						    closeAfterSearch: true }, // search options
-						   {}
-						 );
+						   {
+							   closeOnEscape: true,
+						       closeAfterSearch: true
+						   }, // search options
+						   {});
 	    		//}).jqGrid('navGrid','#pager',{edit:false,add:false,del:false,search:true});
 
 	 			function custom_link(cellValue, options, rowdata, action)
@@ -166,15 +183,4 @@
 
 		});
 		</script>
-	</head>
-	<body>
-		<span style="font-family: 'Poiret One',cursive;font-size: 50px;color: yellow; padding-bottom: 25px;">Weekly Plan List</span>
-		<table id="grid"></table>
-		<div  id="pager"></div>
-		<p align="left">
-			<button id="resetSelect" class="button">선택 초기화</button>
-			<button id="removeSelectedList" class="button">선택 목록 삭제</button>
-		</p>
-	</body>
-</html>
 

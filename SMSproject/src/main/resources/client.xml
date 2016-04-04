@@ -7,22 +7,74 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 
 	<typeAlias alias="Client" type="com.bnebit.sms.vo.Client" />
 	<typeAlias alias="PageSet" type="com.bnebit.sms.util.page.PageSet" />
-	
+
+	<resultMap class="Client" id="clientSearchMap">
+		<result column="client_id" property="clientId"/>
+		<result column="client_name" property="clientName"/>
+		<result column="second_name" property="secondName"/>
+		<result column="client_code" property="clientCode"/>
+		<result column="address" property="address"/>
+		<result column="phone" property="phone"/>
+		<result column="ceo" property="ceo"/>
+	</resultMap>
+
+	<select id="searchClientMain" parameterClass="map" resultMap="clientSearchMap">
+   <![CDATA[
+    select b.* from
+      (select client_id, client_code, client_name, second_name, address, phone, ceo,
+      rownum as rnum,
+    ]]>
+      <iterate property="keywordList" conjunction=" + " >
+        <![CDATA[
+        case when instr(client_name , #keywordList[]# ) <>0 then 4 else 0 end +
+        case when instr(second_name , #keywordList[]# ) <>0 then 1 else 0 end +
+        case when instr(client_code , #keywordList[]# ) <>0 then 2 else 0 end +
+            case when instr(address , #keywordList[]# ) <>0 then 3 else 0 end +
+            case when instr(phone , #keywordList[]# ) <>0 then 1 else 0 end +
+            case when instr(ceo , #keywordList[]# ) <>0 then 3 else 0 end
+        ]]>
+      </iterate>
+   <![CDATA[
+      as relas
+               from client
+   ]]>
+   	where is_delete = 0 and
+      <iterate property="keywordList" open="(" conjunction=") or (" close=")">
+        <![CDATA[
+         client_name like '%' || #keywordList[]# || '%'
+         or
+         second_name  like '%' || #keywordList[]# || '%'
+         or
+         client_code  like '%' || #keywordList[]# || '%'
+         or
+         address like '%' || #keywordList[]# || '%'
+         or
+         phone like '%' || #keywordList[]# || '%'
+         or
+         ceo like '%' || #keywordList[]# || '%'
+        ]]>
+      </iterate>
+   <![CDATA[
+    order by relas desc) b
+    where rnum between #page# and (#page# + #rownum# -1)
+   ]]>
+  </select>
+
 	<sql id="searchClient">
 	 	where
 	 		is_delete = 0
 		<isNotEmpty property="searchKey">
 			<isNotEmpty property="searchValue">
-				<isEqual property="searchKey" compareValue="code" prepend="AND">
+				<isEqual property="searchKey" compareValue="client_code" prepend="AND">
 					client_code LIKE '%' || #searchValue# || '%'
 				</isEqual>
-				<isEqual property="searchKey" compareValue="name" prepend="AND">
+				<isEqual property="searchKey" compareValue="client_name" prepend="AND">
 					client_name LIKE '%' || #searchValue# || '%'
 				</isEqual>
 				<isEqual property="searchKey" compareValue="ceo" prepend="AND">
 					ceo LIKE '%' || #searchValue# || '%'
 				</isEqual>
-				<isEqual property="searchKey" compareValue="addr" prepend="AND">
+				<isEqual property="searchKey" compareValue="address" prepend="AND">
 					address LIKE '%' || #searchValue# || '%'
 				</isEqual>
 			</isNotEmpty>
@@ -107,6 +159,15 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 			client_code = #clientCode#
 	</select>
 
+	<select id="selectClientByClientCode" parameterClass="String" resultClass="Client">
+		select
+			client_id as clientId, client_code as clientCode, client_name as clientName, second_name as secondName, address, phone, ceo, reg_date as regDate
+		from
+			client
+		where
+			client_code = #clientCode#
+	</select>
+
 	<insert id="insertClient" parameterClass="Client">
 		insert into client(
 			client_id,
@@ -138,6 +199,28 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 		    phone = #phone#
 		where
   			client_id = #clientId#
+	</update>
+
+
+	<update id="deleteClientList">
+		update
+  			client
+		set
+  			is_delete = 1
+		<dynamic prepend="where">
+    		<iterate open="client_id in (" conjunction="," close=")">
+      			#[]#
+    		</iterate>
+   		</dynamic>
+	</update>
+
+	<update id="deleteClient" parameterClass="String">
+		update
+  			client
+		set
+  			is_delete = 1
+		where
+			client_id = #clientId#
 	</update>
 
 </sqlMap>

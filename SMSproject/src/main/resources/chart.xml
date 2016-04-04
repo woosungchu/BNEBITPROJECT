@@ -5,47 +5,37 @@
 <sqlMap namespace="chart">
 
 	<!-- 매출 달성율 차트 -->
-	<select id="profitRateChart" resultClass="double">
-		select round((sum(profit)/sum(sales_goal)*100), 2) as percent
-		from   (
-			select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday
-			from dept, employee, weekly_plan, daily_plan
-			where dept.dept_id = employee.dept_id
-			and employee.emp_id = weekly_plan.emp_id
-			and weekly_plan.weekly_plan_id = daily_plan.weekly_plan_id
+	<select id="profitRateChart" resultClass="com.bnebit.sms.vo.Chart">
+		select round((NVL(sum(profit)/DECODE(sum(sales_goal)*100,0,NULL,sum(sales_goal)*100),0)), 2) as value, $key$ as key
+		from (
+		      select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday, to_char(plan_date, 'yyyy-MM') as month
+		      from dept, employee, weekly_plan, daily_plan
+		      where dept.dept_id = employee.dept_id
+		      and employee.emp_id = weekly_plan.emp_id
+		      and weekly_plan.weekly_plan_id = daily_plan.weekly_plan_id
 		) gr1, daily_report
 		where gr1.emp_id = daily_report.emp_id
 		and   gr1.plan_date = daily_report.reg_date
-		<isNotEmpty property="chartType">
-			<isEqual property="chartType" compareValue="1" >
-				group by monday
-				order by monday
-			</isEqual>
-			<isEqual property="chartType" compareValue="2">
-				and gr1.monday = #monday#
-				group by gr1.dept_id
-				order by gr1.dept_id
-			</isEqual>
-			<isEqual property="chartType" compareValue="3">
-				and gr1.monday = #monday#
-				and gr1.dept_id = #dept_id#
-				group by gr1.emp_id
-				order by gr1.emp_Id
-			</isEqual>
-			<isEqual property="chartType" compareValue="4">
-				and gr1.monday = #monday#
-				and gr1.emp_id = #emp_id#
-				group by gr1.plan_date
-				order by gr1.plan_date
-			</isEqual>
-		</isNotEmpty>
-	</select>
+	<isNotEmpty property="chartType" >
+		<isEqual property="chartType" compareValue= "1">
+			and gr1.dept_id=#deptId#
+			group by $key$
+			order by $key$
+		</isEqual>
+		<isEqual property="chartType" compareValue= "2">
+			and gr1.emp_id = #empId#
+			group by $key$
+			order by $key$
+		</isEqual>
+	</isNotEmpty>
+</select>
 
-	<!-- 주행거리 차트 -->
-	<select id="distanceChart" resultClass="double">
-		select sum((arrival - departure)) as total_diatance
+
+	<!-- 매출 목표 차트 -->
+	<select id="salesGoalChart" remapResults="true" resultClass="com.bnebit.sms.vo.Chart">
+		select sum(sales_goal) as value, $key$ as key
 		from   (
-			select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday
+			select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday, to_char(plan_date, 'yyyy-MM') as month
 			from dept, employee, weekly_plan, daily_plan
 			where dept.dept_id = employee.dept_id
 			and employee.emp_id = weekly_plan.emp_id
@@ -55,60 +45,66 @@
 		and   gr1.plan_date = daily_report.reg_date
 		<isNotEmpty property="chartType">
 			<isEqual property="chartType" compareValue="1">
-				group by monday
-				order by monday
+				and gr1.dept_id=#deptId#
+				group by $key$
+				order by $key$
 			</isEqual>
 			<isEqual property="chartType" compareValue="2">
-				and gr1.monday = #monday#
-				group by gr1.dept_id
-				order by gr1.dept_id
-			</isEqual>
-			<isEqual property="chartType" compareValue="3">
-				and gr1.monday = #monday#
-				and gr1.dept_id = #dept_id#
-				group by gr1.emp_id
-				order by gr1.emp_Id
-			</isEqual>
-			<isEqual property="chartType" compareValue="4">
-				and gr1.monday = #monday#
-				and gr1.emp_id = #emp_id#
-				group by gr1.plan_date
-				order by gr1.plan_date
+				and gr1.emp_id = #empId#
+				group by $key$
+				order by $key$
 			</isEqual>
 		</isNotEmpty>
 	</select>
 
 	<!-- 매출액 차트 -->
-	<select id="profitChart" resultClass="double">
-		select sum(profit)
+	<select id="profitChart" remapResults="true" resultClass="com.bnebit.sms.vo.Chart">
+		select sum(sales_goal) as value, $key$ as key
 		from   (
-			select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday
+			select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday, to_char(plan_date, 'yyyy-MM') as month
 			from dept, employee, weekly_plan, daily_plan
 			where dept.dept_id = employee.dept_id
 			and employee.emp_id = weekly_plan.emp_id
 			and weekly_plan.weekly_plan_id = daily_plan.weekly_plan_id
-		) gr1, daily_report, (select daily_report_id, to_number(to_char(reg_date, 'YYMM')) as month from daily_report) daily_report_2
+		) gr1, daily_report
 		where gr1.emp_id = daily_report.emp_id
 		and   gr1.plan_date = daily_report.reg_date
-		and daily_report.daily_report_id = daily_report_2.daily_report_id
 		<isNotEmpty property="chartType">
 			<isEqual property="chartType" compareValue="1">
-				group by month
-				order by month
+				and gr1.dept_id=#deptId#
+				group by $key$
+				order by $key$
 			</isEqual>
 			<isEqual property="chartType" compareValue="2">
-				group by gr1.dept_id, month
-				order by gr1.dept_id, month
+				and gr1.emp_id = #empId#
+				group by $key$
+				order by $key$
 			</isEqual>
-			<isEqual property="chartType" compareValue="3">
-				and gr1.dept_id = #dept_id#
-				group by gr1.emp_id, month
-				order by gr1.emp_id, month
+		</isNotEmpty>
+	</select>
+
+	<!-- 주행거리 차트 -->
+	<select id="distanceChart" remapResults="true" resultClass="com.bnebit.sms.vo.Chart">
+		select sum((arrival - departure)) as value, $key$ as key
+		from   (
+			select dept.dept_id, dept_name, employee.emp_id, emp_name, sales_goal, plan_date, monday, to_char(plan_date, 'yyyy-MM') as month
+			from dept, employee, weekly_plan, daily_plan
+			where dept.dept_id = employee.dept_id
+			and employee.emp_id = weekly_plan.emp_id
+			and weekly_plan.weekly_plan_id = daily_plan.weekly_plan_id
+		) gr1, daily_report
+		where gr1.emp_id = daily_report.emp_id
+		and   gr1.plan_date = daily_report.reg_date
+		<isNotEmpty property="chartType">
+			<isEqual property="chartType" compareValue="1">
+				and gr1.dept_id=#deptId#
+				group by $key$
+				order by $key$
 			</isEqual>
-			<isEqual property="chartType" compareValue="4">
-				and gr1.emp_id = #emp_id#
-				group by month
-				order by month
+			<isEqual property="chartType" compareValue="2">
+				and gr1.emp_id = #empId#
+				group by $key$
+				order by $key$
 			</isEqual>
 		</isNotEmpty>
 	</select>

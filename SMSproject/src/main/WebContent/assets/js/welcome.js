@@ -128,6 +128,7 @@ function resizing(){
 	var totalH = windowH - contentH;
 
 	$('#contentBox').css("margin-top", totalH);
+	$('#contentBox').removeAttr('hidden');
 }
 
 $('#user_id').click(function(){

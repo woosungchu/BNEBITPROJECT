@@ -15,19 +15,28 @@
  	<select id="selectDeptListBox" resultMap="deptListResultMap">
 		select dept_id, dept_name
 		from dept
+		where dept_name != '관리자'
 	</select>
 
  	<!-- 전체 부서의 목록을 보여줌 -->
 	<select id="selectDeptList" parameterClass="pageOption" resultMap="deptListResultMap">
-		select ROWNUM as rnum, dept_id, dept_name
+		select dept_id, dept_name
 		from dept
+		where ROWNUM between #start# and #end#
+        	  and dept_name != '관리자'
 		<isEqual property="search" compareValue="true">
           <isNotEmpty property="searchField">
-            <isNotEmpty property="searchString" prepend="where">
+            <isNotEmpty property="searchString" prepend="and">
               <isEqual property="searchOper" compareValue="eq">
-                  $searchField$ like '%' || #searchString# || '%'
+                  $searchField$ like #searchString#
               </isEqual>
               <isEqual property="searchOper" compareValue="ne">
+                  $searchField$ not like #searchString#
+              </isEqual>
+              <isEqual property="searchOper" compareValue="in">
+                  $searchField$ like '%' || #searchString# || '%'
+              </isEqual>
+              <isEqual property="searchOper" compareValue="ni">
                   $searchField$ not like '%' || #searchString# || '%'
               </isEqual>
             </isNotEmpty>
@@ -36,20 +45,27 @@
         <isNotEmpty property="fullSidx">
           order by $fullSidx$
         </isNotEmpty>
-        where rnum between #start# and #end#
 	</select>
 
 	<!-- 전체 부서의 수를 보여줌  -->
 	<select id="selectDeptListCount" parameterClass="pageOption" resultClass="int">
 		select count(*)
 		from dept
+		where ROWNUM between #start# and #end#
+        	  and dept_name != '관리자'
 		<isEqual property="search" compareValue="true">
           <isNotEmpty property="searchField">
-            <isNotEmpty property="searchString" prepend="where">
+            <isNotEmpty property="searchString" prepend="and">
               <isEqual property="searchOper" compareValue="eq">
-                  $searchField$ like '%' || #searchString# || '%'
+                  $searchField$ like #searchString#
               </isEqual>
               <isEqual property="searchOper" compareValue="ne">
+                  $searchField$ not like #searchString#
+              </isEqual>
+              <isEqual property="searchOper" compareValue="in">
+                  $searchField$ like '%' || #searchString# || '%'
+              </isEqual>
+              <isEqual property="searchOper" compareValue="ni">
                   $searchField$ not like '%' || #searchString# || '%'
               </isEqual>
             </isNotEmpty>
@@ -76,7 +92,7 @@
 
 	<!-- 새로운 부서를 등록함  -->
 	<insert id="insertDept" parameterClass="dept">
-		insert into dept(seq_dept_id.nextval,#deptName#)
+		insert into dept values(seq_dept_id.nextval,#deptName#)
 	</insert>
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 </sqlMap>

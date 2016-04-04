@@ -3,17 +3,12 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"></c:set>
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 		<title>사용자 추가</title>
 		<link rel="stylesheet" type="text/css" href="${contextPath}/assets/css/form-normalize.css" />
         <link rel="stylesheet" type="text/css" href="${contextPath}/assets/css/form-style.css" />
         <link rel="stylesheet" type="text/css" href="${contextPath}/assets/css/form-input-file.css" />
-        <script src="${contextPath}/assets/js/form-input-file.js" type="text/javascript"></script>
-        <script src="${contextPath}/assets/js/employee-validation.js" type="text/javascript"></script>
-	</head>
-	<body>
+
 		<h2 align="center" style="color: gray;">사용자 추가</h2>
 		<hr width="700"><br>
         <div class="container" style="width: 600px; border-radius : 15px;">
@@ -55,10 +50,12 @@
 			      </div>
 			      <p class="submit">
 			      	 <button type="submit">등록</button>
-			      	 <a href="/admin/employee/employeeList"><button id="cancle" type="button">취소</button></a>
+			      	 <a href="/admin/employee/employeeList" class="aBtn">취소</a>
 			      </p>
 		      </form>
 		    </section>
 	    </div>
-	</body>
-</html>
+
+	    <script src="${contextPath}/assets/js/form-input-file.js" type="text/javascript"></script>
+        <script src="${contextPath}/assets/js/employee-validation.js" type="text/javascript"></script>
+

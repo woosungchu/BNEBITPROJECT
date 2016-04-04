@@ -30,7 +30,6 @@ public class MessageController {
 	public ModelAndView receiveMessageList(PageSet pageSet, HttpSession session) {
 		ModelAndView mav = new ModelAndView();
 		Employee employee = (Employee) session.getAttribute("LOGIN_USER");
-		System.out.println("pageSet.getSearchValue(): " + pageSet.getSearchValue());
 
 		mav.addObject("pageInfo", messageService.receiveMessageList(pageSet, employee));
 		mav.setViewName("message/receiveMessageList");

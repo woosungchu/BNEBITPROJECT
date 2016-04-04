@@ -1,6 +1,9 @@
 package com.bnebit.sms.dao;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ibatis.SqlMapClientTemplate;
@@ -32,6 +35,7 @@ public class ClientDAO {
 	 *
 	 * @param pageSet
 	 */
+	@SuppressWarnings("unchecked")
 	public List<Client> selectClientList(PageSet pageSet) {
 		return (List<Client>) sqlMapClientTemplate.queryForList(nameSpace + "selectClientList", pageSet);
 	}
@@ -49,6 +53,10 @@ public class ClientDAO {
 		return (String) sqlMapClientTemplate.queryForObject(nameSpace +  "selectClientCode", clientCode);
 	}
 
+	public Client selectClientByClientCode(String clientCode) {
+		return (Client) sqlMapClientTemplate.queryForObject(nameSpace +  "selectClientByClientCode", clientCode);
+	}
+
 	public void insertClient(Client client) {
 		sqlMapClientTemplate.insert(nameSpace + "insertClient", client);
 	}
@@ -56,5 +64,22 @@ public class ClientDAO {
 	public void updateClient(Client client) {
 		sqlMapClientTemplate.update(nameSpace + "updateClient", client);
 	}
+
+	public ArrayList<Client> searchClient(String[] keywordList, int rownum, int page) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("keywordList", keywordList);
+		map.put("rownum", rownum); //늘어날 list 수
+		map.put("page", page);//지금 마지막 list
+		return (ArrayList<Client>) sqlMapClientTemplate.queryForList(nameSpace + "searchClientMain", map);
+	}
+
+	public void deleteClientList(List<String> clientIdList) {
+		sqlMapClientTemplate.update(nameSpace + "deleteClientList", clientIdList);
+	}
+
+	public void deleteClient(String clientId) {
+		sqlMapClientTemplate.update(nameSpace + "deleteClient", clientId);
+	}
+
 
 }

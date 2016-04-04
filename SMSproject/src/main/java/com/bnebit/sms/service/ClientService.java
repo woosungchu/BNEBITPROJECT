@@ -1,5 +1,7 @@
 package com.bnebit.sms.service;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,12 @@ public class ClientService {
 		client.setPhoneSplit();
 		return client;
 	}
+
+	public Client selectClientByClientCode(HttpServletRequest request) {
+		String clientCode = request.getParameter("clientCode");
+		Client client = clientDAO.selectClientByClientCode(clientCode);
+		return client;
+	}
 	/**
 	 * 거래처 추가
 	 *
@@ -61,6 +69,14 @@ public class ClientService {
 	public void updateClient(Client client) {
 		client.setPhone();
 		clientDAO.updateClient(client);
+	}
+
+	public void deleteClientList(List<String> clientIdList) {
+		clientDAO.deleteClientList(clientIdList);
+	}
+
+	public void deleteClient(String clientId) {
+		clientDAO.deleteClient(clientId);
 	}
 
 /*	*//**

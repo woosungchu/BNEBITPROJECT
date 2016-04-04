@@ -2,9 +2,12 @@ package com.bnebit.sms.service;
 
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,10 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.bnebit.sms.dao.ClientDAO;
+import com.bnebit.sms.dao.ConsultingDAO;
 import com.bnebit.sms.dao.DailyReportDAO;
 import com.bnebit.sms.dao.EmployeeDAO;
 import com.bnebit.sms.dao.EventDAO;
 import com.bnebit.sms.util.page.PageUtil;
+import com.bnebit.sms.vo.Client;
+import com.bnebit.sms.vo.Consulting;
 import com.bnebit.sms.vo.DailyPlan;
 import com.bnebit.sms.vo.DailyReport;
 import com.bnebit.sms.vo.Employee;
@@ -30,6 +37,12 @@ public class DailyReportService {
 	private DailyReportDAO dailyReportDAO;
 
 	@Autowired
+	private ConsultingDAO consultingDAO;
+
+	@Autowired
+	private ClientDAO clientDAO;
+
+	@Autowired
 	private EventDAO eventDAO;
 
 	@Autowired
@@ -39,7 +52,7 @@ public class DailyReportService {
 	static int currentBlock = 1;
 
 	// 일일보고 목록조회
-	public ModelAndView selectDailyReportList(HttpServletRequest request) throws SQLException {
+	public ModelAndView selectDailyReportListForUser(HttpServletRequest request) throws SQLException {
 		ModelAndView mav = new ModelAndView();
 
 		// session 정보에서 position과 empId, deptId를 받아옴
@@ -70,6 +83,7 @@ public class DailyReportService {
 		// paging
 		PageUtil pageUtil = new PageUtil();
 		int totalCount = dailyReportDAO.countDailyReport(paramMap);
+		System.out.println("totalCount : " + totalCount);
 
 		String param = request.getParameter("currentPage");
 		if (param != null) {
@@ -82,10 +96,8 @@ public class DailyReportService {
 		int startNum = pageUtil.startNum(totalCount);
 		int endNum = pageUtil.endNum(totalCount);
 
-		if (startNum != endNum) {
-			paramMap.put("startNum", startNum);
-			paramMap.put("endNum", endNum);
-		}
+		paramMap.put("startNum", startNum);
+		paramMap.put("endNum", endNum);
 
 		int totalPageCount = pageUtil.pageCountSize(totalCount);
 		int totalBlockCount = pageUtil.blockCountSize(totalCount);
@@ -111,11 +123,8 @@ public class DailyReportService {
 		paramMap.put("blockSize", blockSize);
 		paramMap.put("pageSize", pageSize);
 
-		if ("Manager".equals(position)) {
-			dailyReportList = dailyReportDAO.selectDailyReportListLeader(paramMap);
-		} else if ("Salesman".equals(position)) {
-			dailyReportList = dailyReportDAO.selectDailyReportListWorker(paramMap);
-		}
+
+		dailyReportList = dailyReportDAO.selectDailyReportListForUser(paramMap);
 
 		Iterator<String> iterator = paramMap.keySet().iterator();
 		while (iterator.hasNext()) {
@@ -123,8 +132,26 @@ public class DailyReportService {
 			System.out.println("key : " + key + ", value : " + paramMap.get(key));
 		}
 
+		int isEqualDate = 0;
 		for (int i = 0; i < dailyReportList.size(); i++) {
 			System.out.println(dailyReportList.get(i));
+			DailyReport  dailyReport = new DailyReport();
+			dailyReport = dailyReportList.get(i);
+
+			String regDate = dailyReport.getRegDate();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.KOREA);
+			Date date = new Date();
+			String today = dateFormat.format(date);
+
+			if(today.equals(regDate)) {
+				isEqualDate += 1;
+			}
+		}
+
+		if(isEqualDate == 1) {
+			mav.addObject("isTodayDailyReport", true);
+		} else {
+			mav.addObject("isTodayDailyReport", false);
 		}
 
 		mav.addObject("pageUtil", pageUtil);
@@ -138,10 +165,10 @@ public class DailyReportService {
 	}
 
 	// 일일보고 내용조회
-	// parameter : dailyReport
 	public ModelAndView selectDailyReportView(HttpServletRequest request) throws SQLException, ParseException {
-		// session 정보에서 position과 empId, deptId를 받아옴
+		// 로그인 session 정보 받아옴
 		HttpSession session = request.getSession();
+		ModelAndView mav = new ModelAndView();
 
 		Employee employee = (Employee) session.getAttribute("LOGIN_USER");
 		employee = employeeDAO.selectOneById(employee.getEmpId());
@@ -157,15 +184,33 @@ public class DailyReportService {
 			System.out.println("key : " + key + ", value : " + paramMap.get(key));
 		}
 
+		// dailyReportView 내용 받아오기
 		DailyReport dailyReport = (DailyReport) dailyReportDAO.selectDailyReportView(paramMap);
 		DailyPlan dailyPlan = (DailyPlan) dailyReportDAO.selectSalesGoal(paramMap);
-		System.out.println("dailyReport : " + dailyReport);
-		System.out.println("dailyPlan : " + dailyPlan);
 
-		ModelAndView mav = new ModelAndView();
+		String regDate = dailyReport.getRegDate();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.KOREA);
+		Date date = new Date();
+		String today = dateFormat.format(date);
+
+		if(today.equals(regDate)) {
+			mav.addObject("isTodayDailyReport", true);
+		} else {
+			mav.addObject("isTodayDailyReport", false);
+		}
+
+		// consulting 상담일지 목록 및 내용
+		ArrayList<Consulting> consultingList = (ArrayList<Consulting>) consultingDAO.selectConsultingListWorker(paramMap);
+
+		// consulting 상담일지 작성에 필요한 client 정보 조회
+		String clientCode = request.getParameter("clientCode");
+		Client client = clientDAO.selectClientByClientCode(clientCode);
+		System.out.println(client);
 		mav.addObject("employee", employee);
 		mav.addObject("dailyReport", dailyReport);
 		mav.addObject("dailyPlan", dailyPlan);
+		mav.addObject("consultingList", consultingList);
+		mav.addObject("client", client);
 		mav.setViewName("dailyReport/dailyReportView");
 		return mav;
 	}

@@ -1,14 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
 <link rel='stylesheet' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/cupertino/jquery-ui.css' />
 <link rel='stylesheet' href='http://fullcalendar.io/js/fullcalendar-2.2.3/fullcalendar.css' />
+<link rel="stylesheet" href="http://cdn.oesmith.co.uk/morris-0.4.3.min.css">
 <link rel="stylesheet" href="/assets/css/mainBody.css">
 <link rel="stylesheet" href="/assets/css/simpleWeather.css">
-<jsp:useBean id="today" class="java.util.Date" />
-<fmt:formatDate value="${today }" pattern="yyyy/MM/dd" var="sysdate" />
+
+<jsp:useBean id="fullDate" class="java.util.Date" />
+<fmt:formatDate value="${fullDate }" pattern="yyyy/MM/dd" var="today" />
 
 <div id="bodyContainer" class="container-fluid xyz" style="visibility: hidden;">
 	<div class="row"><!-- first row -->
@@ -39,7 +41,7 @@
 			</div>
 			<!-- second panel -->
 			<div class="panel panel-success c-pointer" 
-			onclick="location.href='/dailyReport/insertDailyReportForm?empId=${LOGIN_USER.empId}&regDate=${sysdate}'">
+			onclick="location.href='/dailyReport/insertDailyReportForm?empId=${LOGIN_USER.empId}&regDate=${today}'">
 			  <div class="panel-heading">
 			  	<div class="row">
 			  		<div class="col-xs-3">
@@ -66,7 +68,7 @@
 									<li class="list-group-item">
 										<label class="form-checkbox form-icon form-text">
 											<c:choose>
-												<c:when test="${v.type eq '0'}">
+												<c:when test="${v.type eq 'false' || v.type eq '0'}">
 													<input data-id="${v.planId}" class="plan-checkbox" type="checkbox"> 
 												</c:when>
 												<c:otherwise>
@@ -106,12 +108,12 @@
 		<div class="col-lg-3 hidden-md">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h4 class="panel-title">부서 연락망 <span class="pull-right label label-success">Label Test</span></h4>
+					<h4 class="panel-title">부서 연락망</h4>
                 </div>
                 <div class="panel-content">
                 	<ul class="main-ul clearfix">
                 		<c:forEach var="v" items="${contactList }">
-	                		<li><a href="#" class="preventDefault">
+	                		<li><a href="#" class="preventDefault btn-staff-info" data-emp-id="${v.empId}">
 	                			<c:choose>
 	                				<c:when test="${v.imgName != 'NONAME' && not empty v.imgName}">
 	                					<img src="/Upload/${v.imgName}">
@@ -120,7 +122,7 @@
 			                			<img src="/assets/image/noname.png">
 	                				</c:otherwise>
 	                			</c:choose>
-	                			</a><h5>${v.empName}<br/><small>${v.phone }</small></h5></li>
+	                			</a><h5 class="ellipsis">${v.empName}<br/><small>${v.phone }</small></h5></li>
                 		</c:forEach>
                 	</ul>
                 </div>
@@ -142,9 +144,9 @@
 			</div>
 			<div id="week-profit" class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">나의 주간 매출액</h3>
+					<h3 class="panel-title">나의 주간 매출액 </h3>
 				</div>
-				<div class="panel-body">
+				<div class="panel-body bg-success">
 					<div>
 						<h4>
 							<span><i class="fa fa-usd"></i> ${weeklyProfits}</span>
@@ -154,7 +156,7 @@
 					</div>
 					<div class="progress">
 					  <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" 
-					  style="width:${weeklyProfits / weeklySalesGoal * 100}%; max-width : 100%">
+					  style="width:${weeklyProfits / weeklySalesGoal * 100}%; max-width : 100%;">
 					    ${fn:substringBefore((weeklyProfits / weeklySalesGoal * 100),'.')} %
 					  </div>
 					</div>
@@ -165,9 +167,10 @@
 		<div class="col-lg-6 hidden-md">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h4 class="panel-title">주간 매출</h4>
+					<h4 class="panel-title">통계<span id="btnChart" class="pull-right label label-info c-pointer"><i class="fa fa-info-circle"></i></span></h4>
 				</div>
-				<div id="main-graph"></div>
+<!-- 				<div id="main-graph"></div> -->
+				<div id="sales-chart" style="height: 300px;"></div>
 			</div>
 		</div>
 		<!-- col-lg-3 -->
@@ -202,7 +205,13 @@
 											<p><i class="fa fa-user"></i> ${v.client.ceo }  
 												<small  class="pull-right">
 													<i class="fa fa-arrows-h"></i>
-													${v.dailyReport.employee.dept.deptName} ${ v.dailyReport.employee.position} ${ v.dailyReport.employee.empName }
+													${v.dailyReport.employee.dept.deptName} 
+													<c:set var="position" value="${v.dailyReport.employee.position}"></c:set>
+													<c:choose>
+														<c:when test="${position eq 'Salesman'}">팀원</c:when>
+														<c:when test="${position eq 'Manager'}">팀장</c:when>
+													</c:choose>
+													${ v.dailyReport.employee.empName }
 												</small>
 											</p> 
 											<p><i class="fa fa-phone"></i> ${v.client.phone } </p>
@@ -222,7 +231,7 @@
 				</div>			  
 			  </div>
 			  <div class="panel-footer">
-              	<button type="button" class="btn btn-block btn-info">더 보기</button>
+              	<button id="btnMoreClient" type="button" class="btn btn-block btn-info">더 보기</button>
               </div>
 		</div>
 		<!-- end your content -->
@@ -231,42 +240,11 @@
 <script src='http://fullcalendar.io/js/fullcalendar-2.2.3/lib/moment.min.js'></script>
 <script src='http://fullcalendar.io/js/fullcalendar-2.2.3/fullcalendar.min.js'></script>
 <script src='/assets/js/flotr2.min.js'></script>
+<script type="text/javascript"
+	src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script type="text/javascript"
+	src="http://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.0/morris.min.js"></script>
+<script type="text/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
 <script src='/assets/js/mainPage.js'></script>
 <script src='/assets/js/simpleWeather.min.js'></script>
-<script type="text/javascript">
-
-//calendar
-$('#calendar').fullCalendar({
-	eventSources:[{
-		events:function(start, end, timezone, callback){
-			$.ajax({
-				url:"/calendarGetPlan?empId=${LOGIN_USER.empId}",
-				type:'post',
-				dataType:'json',
-				success:function(data){
-					var events=[];
-					var eventList=data.Event;
-					for(var i=0;i<eventList.length;i++){
-						events.push({
-							title:eventList[i].title,
-							start:eventList[i].eventDate.substring(0,10),
-							rendering:'background'
-						});
-					}
-					var planList=data.Plan;
-					for(var i=0;i<planList.length;i++){
-						events.push({
-							title:planList[i].content,
-							start:planList[i].dailyPlan.planDate.substring(0,10)
-						});
-					}
-					callback(events);
-				}
-			});
-		}
-}],
-eventLimit : true
-});
-
-
-	</script>

@@ -41,14 +41,6 @@
 			</div>
 			<div class="form-group">
 				<label class="col-sm-1 control-label" for="title">제목</label>
-				<!-- <div class="col-sm-5">
-					<select class="form-control" name="title" id="title">
-						<option id="week2_1">2016년 2월 1주차</option>
-						<option id="week2_2">2016년 2월 2주차</option>
-						<option id="week2_3">2016년 2월 3주차</option>
-						<option id="week2_4">2016년 2월 4주차</option>
-					</select>
-				</div> -->
 				<div class="btn-group col-sm-5">
 				  <button type="button" class="btn btn-default" style="width:90%;">${weeklyPlan.title}</button>
 				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -59,14 +51,6 @@
 				  </ul>
 				</div>
 				<label class="col-sm-1 control-label" for="monday">날짜</label>
-				<!-- <div class="col-sm-5">
-					<select class="form-control" name="date" id="monday">
-						<option id="week2_1">2016.02.01~2016.02.05</option>
-						<option id="week2_2">2016.02.08~2016.02.12</option>
-						<option id="week2_3">2016.02.15~2016.02.19</option>
-						<option id="week2_4">2016.02.21~2016.02.25</option>
-					</select>
-				</div> -->
 				<div class="btn-group col-sm-5">
 				  <button type="button" id="mondayBtn" class="btn btn-default" style="width:90%;" >${weeklyPlan.monday}</button>
 				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -195,7 +179,7 @@
 				dayEnd="0"+dayEnd;
 			}
 			var dateStringEnd=yearEnd + "/" + monthEnd + "/" + dayEnd;
-			$('<li><a href="checkWeeklyPlan?empId=${weeklyPlan.employee.empId}&monday='+dateString+'">'+dateString+'~'+dateStringEnd+'</a></li>').appendTo('#monday');
+			$('<li><a href="checkWeeklyPlan?monday='+dateString+'">'+dateString+'~'+dateStringEnd+'</a></li>').appendTo('#monday');
 			var monthWed=dateWed.getMonth()+1;
 			var dayWed=dateWed.getDate();
 			var wedWeek;
@@ -204,7 +188,7 @@
 			}else{
 				wedWeek=Math.floor((dayWed-1)/7)+1;
 			}
-			$('<li><a href="checkWeeklyPlan?empId=${weeklyPlan.employee.empId}&monday='+dateString+'">'+monthWed+'월 '+wedWeek+'주차 주간계획'+'</a></li>').appendTo('#title');
+			$('<li><a href="checkWeeklyPlan?monday='+dateString+'">'+monthWed+'월 '+wedWeek+'주차 주간계획'+'</a></li>').appendTo('#title');
 			dayOfMonth=date.getDate();
 			date.setDate(dayOfMonth+7);
 			dayOfMonth=dateEnd.getDate();
@@ -216,6 +200,11 @@
 
 	function addPlan(){
 		var list=new Array();
+		var idSeq = 0;
+		var ob = {
+				'count':1
+		};
+
 		<c:forEach var="daily" items="${dailyPlanList}">
 			$.ajax({
 				url:"/viewPlan?empId=${weeklyPlan.employee.empId}&planDate=${daily.planDate}",
@@ -227,6 +216,7 @@
 					var strArray=dataString.split("\"");
 					var type=strArray[1];
 					if("eventDate"==type){
+						$('input[data-plan-date="${daily.planDate}"]').attr('disabled', 'disabled');
 						span.innerHTML+="<div class=\"form-group has-error\" style=\"width:100%;\">"
 							+"<input type=\"text\" readonly=\"readonly\" align=\"center\" class=\"form-control\" width\"20\" value="+data.title+">"
 						  +"</div>";
@@ -234,33 +224,98 @@
 						var arrayList=data;
 						if(arrayList!=""){
 							for(var i=0;i<data.length;i++){
-								span.innerHTML+="<div class=\"input-gourp\">"
-											+"<form class=\"form-signin\" action=\"removePlan\" method=\"post\">"
+								span.innerHTML+="<div id=\""+idSeq+"delDiv\" class=\"input-gourp\">"
 											+ "<div class=\"input-group\" style=\"width:100%;\">"
 											+		"<input type=\"text\" readonly=\"readonly\" class=\"form-control\" value="+data[i].content+">"
-								      +		"<span class=\"input-group-btn\">"
-								      +			"<input class=\"btn btn-secondary btn-danger\" type=\"submit\" onSubmit=\"return false;\" value=\"X\"/>"
-								      +		"</span>"
-								      +	"</div>"
-								      +	"<input type=\"hidden\" name=\"planId\" value="+data[i].planId+"><br>"
-											+"</form></div>";
+									        +		"<span class=\"input-group-btn\">"
+									        +			"<input id=\""+idSeq+"delbtn\" class=\"btn btn-secondary btn-danger\" data-plan-id=\""+data[i].planId+"\" type=\"button\" value=\"X\"/>"
+									        +		"</span>"
+									        +	"</div><br>"
+											+"</div>";
+								idSeq += 1;
 							}
 						}
-						span.innerHTML+="<div class=\"input-gourp\">"
-											+"<form class=\"form-signin\" action=\"inputPlan\" method=\"post\">"
+						span.innerHTML+="<div id=\"${daily.dailyPlanId}addDiv\" class=\"input-gourp\">"
 											+		"<div class=\"input-group\">"
-											+		"<input type=\"text\" class=\"form-control\" placeholder=\"Input Plan\" name=\"content\">"
-										  +    "<span class=\"input-group-btn\">"
-										  +      "<input class=\"btn btn-secondary btn-primary\" type=\"submit\" onSubmit=\"return false;\" value=\"+\"/>"
-										  +    "</span>"
+											+		"<input id=\"${daily.dailyPlanId}text\" type=\"text\" class=\"form-control\" placeholder=\"Input Plan\" name=\"content\">"
+										    +    "<span class=\"input-group-btn\">"
+										    +      "<input id=\"${daily.dailyPlanId}addbtn\" class=\"btn btn-secondary btn-primary\" type=\"submit\" value=\"+\"/>"
+										    +    "</span>"
 											+	"</div>"
-									    +  "<input type=\"hidden\" name=\"dailyPlanId\" value=\"${daily.dailyPlanId}\"/>"
-											+"</form></div>";
+											+"</div>";
 					}
+					$("#${daily.dailyPlanId}addbtn").click(function(){
+						if($("#${daily.dailyPlanId}text").val()!=""){
+							$.ajax({
+								url:"/inputPlan",
+								type:"post",
+								data:{
+									"dailyPlanId":"${daily.dailyPlanId}",
+									"content":$("#${daily.dailyPlanId}text").val()
+								},
+								success:function(data){
+
+									$("#${daily.dailyPlanId}addDiv").before('<div id=\"'+idSeq+'delDiv\" class=\"input-gourp\">'
+										+ '<div class=\"input-group\" style=\"width:100%;\">'
+										+		'<input type=\"text\" readonly=\"readonly\" class=\"form-control\" value='+$("#${daily.dailyPlanId}text").val()+'>'
+								        +		'<span class=\"input-group-btn\">'
+								        +			'<input id=\"'+idSeq+'delbtn\" class=\"btn btn-secondary btn-danger\" data-plan-id=\"'+data+'\" type=\"submit\" value=\"X\"/>'
+								        +		'</span>'
+								        +	'</div><br>'
+										+'</div>');
+
+									var planId=data.split("\"");
+
+									$("#"+idSeq+"delbtn").click(function(){
+										$.ajax({
+											url:"/removePlan",
+											type:"post",
+											data:{
+												"planId":planId[1]
+											},
+											success:function(data){
+												if(data==="\"성공\""){
+												}
+											}
+										});
+										$(this).parent().parent().parent().remove();
+									});
+
+									idSeq += 1;
+									$("#${daily.dailyPlanId}text").val("");
+
+								}
+							});
+						}
+					});
+
+
+					if(ob.count == 5)
+					{
+						for(var i=0; i<idSeq+1; i++)
+						{
+							$("#"+i+"delbtn").click(function(){
+								$.ajax({
+									url:"/removePlan",
+									type:"post",
+									data:{
+										"planId":$(this).data('plan-id')
+									},
+									success:function(data){
+										if(data==="\"성공\""){
+										}
+									}
+								});
+								$(this).parent().parent().parent().remove();
+							});
+						}
+					}
+
+					ob.count += 1;
+
 				}});
 			</c:forEach>
 	}
-
 
 	</script>
 </body>

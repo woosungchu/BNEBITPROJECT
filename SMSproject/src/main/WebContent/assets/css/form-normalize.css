@@ -4,8 +4,6 @@
  * 2. Addresses margins set differently in IE6/7, FF3+, S5, Chrome
  * 3. Improves appearance and consistency in all browsers
  */
-
-button,
 input,
 select,
 textarea {
@@ -18,8 +16,6 @@ textarea {
 /*
  * Addresses FF3/4 setting line-height on 'input' using !important in the UA stylesheet
  */
-
-button,
 input {
     line-height: normal; /* 1 */
 }
@@ -30,8 +26,6 @@ input {
  * 3. Removes inner spacing in IE7 without affecting normal text inputs
  *    Known issue: inner spacing remains in IE6
  */
-
-button,
 input[type="button"],
 input[type="reset"],
 input[type="submit"] {

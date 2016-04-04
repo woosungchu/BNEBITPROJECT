@@ -2,6 +2,8 @@ package com.bnebit.sms.controller;
 
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.bnebit.sms.service.ConsultingService;
 import com.bnebit.sms.service.DailyReportService;
 import com.bnebit.sms.vo.DailyReport;
 
@@ -24,21 +27,22 @@ public class DailyReportController {
 	@Autowired
 	private DailyReportService dailyReportService;
 
+
 	// 일일보고 목록조회
-	@RequestMapping(value = "/dailyReport/selectDailyReportList")
-	public ModelAndView selectDailyReportList(HttpServletRequest request) throws SQLException {
+	@RequestMapping(value = "/dailyReport/selectDailyReportList", method = {RequestMethod.GET, RequestMethod.POST})
+	public ModelAndView selectDailyReportListForUser(HttpServletRequest request) throws SQLException {
 		ModelAndView mav = new ModelAndView();
-		mav = dailyReportService.selectDailyReportList(request);
+		mav = dailyReportService.selectDailyReportListForUser(request);
 		return mav;
 	}
 
 	// 일일보고 내용조회, 상담일지 목록조회
-	@RequestMapping(value = "/dailyReport/selectDailyReportView")
+	@RequestMapping(value = "/dailyReport/selectDailyReportView", method = {RequestMethod.GET, RequestMethod.POST})
 	public ModelAndView selectDailyReportView(HttpServletRequest request) throws SQLException, ParseException {
 		ModelAndView mav = new ModelAndView();
 		mav = dailyReportService.selectDailyReportView(request);
-		// mav = dailyReportService.selectConsultingList(request);
 		return mav;
+
 	}
 
 	/*
@@ -55,7 +59,6 @@ public class DailyReportController {
 	@ResponseBody
 	public void updateDailyReportConfirm(DailyReport dailyReport) throws SQLException {
 		dailyReportService.updateDailyReportConfirm(dailyReport);
-		// 일일보고 내용조회 페이지로 이동
 	}
 
 	// 일일보고 작성 페이지로 이동

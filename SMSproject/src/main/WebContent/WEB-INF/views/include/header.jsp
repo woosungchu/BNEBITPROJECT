@@ -12,9 +12,9 @@
      <!-- Search -->
 	  <div class="col-md-8 col-sm-7 hidden-xs search-form">
 		<div class="form-group">
-            <input type="text" class="form-control" placeholder="Search">
+            <input id="searchInput" type="text" class="form-control" placeholder="Search">
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button id="searchBtn" class="btn btn-primary">Submit</button>
 	  </div>
 	  	<!-- user -->
       <div id="user">
@@ -216,5 +216,43 @@
       </div>
     </div>
   </div>
+  
+  
+<!-- modal -->
+<!-- userInfoModal -->
+  <div class="modal fade" id="staffInfoModal" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h3 class="modal-title">직원 정보</h3>
+        </div>
+        <div class="modal-body">
+        	<div id="userInfoBox" class="row">
+					<div class="row">
+						<div class="col-sm-3">
+							<c:choose>
+	                			<c:when test="${LOGIN_USER.imgName != 'NONAME' && not empty LOGIN_USER.imgName}">
+									<img id="staffImg" src="/Upload/${LOGIN_USER.imgName}" alt="ProfileImg" class="img-rounded hidden-xs">
+	                			</c:when>
+	                			<c:otherwise>
+	                				<img id="staffImg" src="/assets/image/noname.png" alt="ProfileImg" class="img-rounded hidden-xs">
+	                			</c:otherwise>
+	                		</c:choose>
+						</div>
+						<div id="staff-info" class="col-sm-9">
+						</div>
+					</div>
+				</div><!-- First Row End -->
+        </div><!-- modal body end -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">확인</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
   <jsp:include page="modalMessage.jsp"/>

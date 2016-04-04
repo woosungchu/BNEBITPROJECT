@@ -5,6 +5,19 @@
     margin: 0 auto;
     font-size: 10px;
 }
+
+.container {width: 960px; margin: 0 auto; overflow: hidden; height:910px;}
+
+.tooltip {
+	display:none;
+	position:absolute;
+	border:1px solid #333;
+	background-color:#161616;
+	border-radius:5px;
+	padding:10px;
+	color:#fff;
+	font-size:12px Arial;
+}
 .fc-toolbar h2 {
     font-size: 2em;
     white-space: normal !important;
@@ -18,12 +31,15 @@
 .fc-button-content {
     padding: 0;
 }
+.fc-widget-header{
+    background-color: #54a0c6;
+}
 
 /* main-ul  */
 .main-ul {
 	padding : 0;
 	list-style: none;
-	
+
 	max-height : 280px;
 	overflow-y : scroll;
 }
@@ -51,10 +67,6 @@
 	margin-bottom : 0;
 }
 
-.c-pointer:hover {
-	cursor: pointer;
-}
-
 /* to-do-list */
 #to-do-list {
 	max-height: 250px;
@@ -73,4 +85,5 @@
 	font-size : 1.2em;
 	padding-left: 1em;
 }
+
 /* /////////////// */

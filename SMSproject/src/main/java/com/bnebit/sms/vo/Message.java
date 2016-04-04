@@ -6,7 +6,7 @@ public class Message implements Serializable {
 	private static final long serialVersionUID = 5100590911051534985L;
 
 	private String msgId;
-	private Employee receiver; //This is LOGIN_USER // edited by woosungchu
+	private Employee receiver;
 	private Employee sender;
 	private String content;
 	private int checked;

@@ -6,6 +6,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.PrivateKey;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -23,6 +24,9 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -33,9 +37,12 @@ import com.bnebit.sms.util.CryptUtil;
 import com.bnebit.sms.util.Cryptable;
 import com.bnebit.sms.util.MailUtil;
 import com.bnebit.sms.util.UploadUtil;
+import com.bnebit.sms.util.exception.LoginCheckException;
+import com.bnebit.sms.util.exception.SessionCheckException;
 import com.bnebit.sms.vo.Employee;
 import com.bnebit.sms.vo.SessionKey;
 import com.bnebit.sms.vo.Validation;
+import com.sun.xml.internal.ws.util.StringUtils;
 
 @Service
 public class EmployeeService implements Cryptable{
@@ -54,7 +61,7 @@ public class EmployeeService implements Cryptable{
 	private Logger log = Logger.getLogger(getClass());
 	private CryptUtil cryptUtil = CryptUtil.getInstance(this);
 	
-	static final int COOKIE_AGE = 60 * 60 * 24 ;// 하루
+	static final int COOKIE_AGE = 60 * 60 * 24 * 7 ;// 일주일
 	static final int TIME_LIMIT = 30 ; //30분
 	
 	
@@ -72,9 +79,8 @@ public class EmployeeService implements Cryptable{
 		return mav;
 	}
 	
-	public ModelAndView login(Employee inputEmployee, HttpSession session,
-			HttpServletRequest request, HttpServletResponse response){
-		String ipAddr = request.getRemoteAddr();
+	public ModelAndView login(Employee inputEmployee, HttpSession session, HttpServletResponse response){
+		String ipAddr = getIpAddr();
 		Employee employee=new Employee();
 		String decryptedEmail = "";
 		String decryptedPassword = "";
@@ -83,7 +89,7 @@ public class EmployeeService implements Cryptable{
         session.removeAttribute("__rsaPrivateKey__"); // 키의 재사용을 막는다. 항상 새로운 키를 받도록 강제.
         
         if(privateKey == null){
-        	throw new RuntimeException("암호화 비밀키 정보를 찾을 수 없습니다.");
+        	return goLoginForm("암호화 비밀키 정보를 찾을 수 없습니다.");
         }
         
 		try {
@@ -97,16 +103,14 @@ public class EmployeeService implements Cryptable{
             inputEmployee.setPassword(hashingPwd);
             
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.info("복호화를 위한 데이터가 이상합니다 다시 로그인을 시도해주세요....");
         }
         
         //DB에서 로그인한 계정 가져옴
         employee = employeeDAO.selectOneByEmailPw(inputEmployee);
         
         if(employee == null){
-			mav.addObject("MESSAGE", "이메일이나 비밀번호가 잘못되었습니다");
-			mav.setViewName("forward:/loginForm");
-			return mav;
+			return goLoginForm("이메일이나 비밀번호가 잘못되었습니다");
 		}else{
 			//세션저장
 			session.setAttribute("LOGIN_USER",employee);
@@ -130,8 +134,8 @@ public class EmployeeService implements Cryptable{
 	}
 	
 	//세션과 쿠키에 계정정보 넣어줌.
-	private void setSessionCookie(Employee employee, HttpServletRequest request, HttpSession session, HttpServletResponse response) {
-		String ipAddr = request.getRemoteAddr();
+	private void setSessionCookie(Employee employee, HttpSession session, HttpServletResponse response) {
+		String ipAddr = getIpAddr();
 		
 		//세션저장
 		session.setAttribute("LOGIN_USER",employee);
@@ -149,14 +153,9 @@ public class EmployeeService implements Cryptable{
 		response.addCookie(cookie);
 	}
 	
-	public ModelAndView sessionCheck(String cookieID, HttpServletRequest request, HttpSession session) {
-		String ipAddr = request.getRemoteAddr();
+	public ModelAndView sessionCheck(String cookieID, HttpSession session) {
+		String ipAddr = getIpAddr();
 		
-		if(ipAddr.startsWith("0:0:0:0:0:0")){ 
-			mav.setViewName("/error/errorPage");
-			mav.addObject("MESSAGE", "에러발생! localhost말고 자기 IP주소(192.168.1.xx)로 접속해주세요 - woosungchu");
-			return mav;
-		}
 		Employee vo = (Employee) session.getAttribute("LOGIN_USER");
 		
 		//session check
@@ -166,7 +165,6 @@ public class EmployeeService implements Cryptable{
 			return mav;
 		//cookie check
 		}else if(!"-1".equals(cookieID) && ipAddr != null){
-			log.info("쿠키에서 유효계정 발견!");
 			//일단 ip,mac,sessionID 일치하는 SessionKey가져오기
 			SessionKey inputKey = new SessionKey();
 			inputKey.setSessionId(cookieID);
@@ -176,6 +174,7 @@ public class EmployeeService implements Cryptable{
 			SessionKey sessionKey = sessionDAO.selectOne(inputKey);
 			
 			if(sessionKey != null){
+				log.info("쿠키에서 유효계정 발견!");
 				Employee empVo = employeeDAO.selectOneById(sessionKey.getEmployee().getEmpId());
 				
 				//date 비교
@@ -196,43 +195,48 @@ public class EmployeeService implements Cryptable{
 		return mav;
 	}
 	
+	public String getIpAddr(){
+		String ipAddr = "";
+		InetAddress ip = null ;
+		
+		try {
+			ip = InetAddress.getLocalHost();//핵심
+			ipAddr = ip.getHostAddress();//핵심
+			
+		} catch (UnknownHostException e) {
+			ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+			  HttpServletRequest request = servletRequestAttributes.getRequest();
+			ipAddr = request.getRemoteAddr();
+		}
+	
+		return ipAddr;
+	}
+	
 	public ModelAndView logout(HttpSession session, HttpServletResponse response) {
 		session.removeAttribute("LOGIN_USER");
-//		sessionDAO.delete(session.getId()); // 기존로그인 이미지 활성화 위해..
+		
 		Cookie cookie = new Cookie("JSESSIONID",null);
 		cookie.setMaxAge(0);
 		response.addCookie(cookie);
 		session.invalidate();//중요!
 		
-		mav.setViewName("forward:/loginForm");
-		mav.addObject("MESSAGE", "Logout Success");
-		return mav;
+		return goLoginForm("로그아웃에 성공하셨습니다");
 	}
 	
 	private String formatMacAddress(String ipAddr) {
 		NetworkInterface network;
 		StringBuilder sb = null;
 		try {
-			Enumeration<NetworkInterface> networks =
-					NetworkInterface.getNetworkInterfaces();
-			
-			while(networks.hasMoreElements()){
-				network = networks.nextElement();
-				if(network.getHardwareAddress() != null){
-					byte[] mac = network.getHardwareAddress();
-					
-					if(mac != null){
-						sb = new StringBuilder();
-						for (int i = 0; i < mac.length; i++) {
-							sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-						}
-						break;
-					}
-				}else{
-					System.out.println("network.getHardwareAddress() == null!");
-				}
+			//After
+			network = NetworkInterface.getByInetAddress(InetAddress.getByName(ipAddr));
+
+			byte[] mac = network.getHardwareAddress();
+			sb = new StringBuilder();
+			for (int i = 0; i < mac.length; i++) {
+			  sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
 			}
-		} catch (SocketException e1) {e1.printStackTrace();
+			
+		} catch (SocketException | UnknownHostException e1) {e1.printStackTrace();
 		}
 		return sb.toString();
 	}
@@ -304,7 +308,7 @@ public class EmployeeService implements Cryptable{
 	        session.removeAttribute("__rsaPrivateKey__"); // 키의 재사용을 막는다. 항상 새로운 키를 받도록 강제.
 	        
 	        if(privateKey == null){
-	        	throw new RuntimeException("암호화 비밀키 정보를 찾을 수 없습니다.");
+	        	return goLoginForm("암호화 비밀키 정보를 찾을 수 없습니다.");
 	        }
 	        
 	        try {
@@ -320,7 +324,7 @@ public class EmployeeService implements Cryptable{
 			//end
 			
 			//session에 저장, 쿠키에 저장, 후 :/에서 변경페이지로 이동하는 것이 어떤가...
-			setSessionCookie(employee, request, session, response);
+			setSessionCookie(employee, session, response);
 			
 			log.info("인증번호가 일치합니다");
 		}else{
@@ -340,7 +344,7 @@ public class EmployeeService implements Cryptable{
         session.removeAttribute("__rsaPrivateKey__"); // 키의 재사용을 막는다. 항상 새로운 키를 받도록 강제.
         
         if(privateKey == null){
-        	throw new RuntimeException("암호화 비밀키 정보를 찾을 수 없습니다.");
+			return goLoginForm("암호화 비밀키 정보를 찾을 수 없습니다.");
         }
         
 		try {
@@ -368,10 +372,33 @@ public class EmployeeService implements Cryptable{
 		
 	}
 	
+	private ModelAndView goLoginForm(String message) {
+		mav.addObject("MESSAGE", message);
+		mav.setViewName("redirect:/");
+		return mav;
+	}
+	
 	public ModelAndView modifyProfileImg(MultipartFile file, HttpSession session) {
 		Employee employee = (Employee) session.getAttribute("LOGIN_USER");
 		String priorImage = employee.getImgName();
-		UploadUtil.uploadHelper(file, priorImage);
+		String imgName = "";
+		
+		if("NONAME".equals(priorImage)){
+			//사진이 없으면 만듬
+			imgName = "("+employee.getEmail()+")profileImage.png";
+			employee.setImgName(imgName);
+			try {
+				System.out.println(employee);
+				employeeDAO.updateEmp(employee);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}else{
+			//원래 사진이 있으면 덮어씌우기만함.
+			imgName = priorImage;
+		}
+		
+		UploadUtil.uploadHelper(file, imgName);
 		
 		//Session, DB update가 필요 없네 .. 같은 파일명에 덮어 씌우는거니까..
 		mav.addObject("RESULT", "IMG_SUCCESS");

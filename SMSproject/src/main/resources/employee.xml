@@ -48,12 +48,56 @@
 		  where emp_id = #empId#
 	   ]]>
 	  </update>
-	  
+
 	  <select id="selectEmployeeByDept" parameterClass="java.lang.String" resultMap="empMap">
 	    <![CDATA[
-	      select  e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.* 
-	   from employee e inner join dept d on e.DEPT_ID = d.DEPT_ID 
-	   where e.dept_id = #deptId# 
+	      select  e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*
+	   from employee e inner join dept d on e.DEPT_ID = d.DEPT_ID
+	   where e.dept_id = #deptId# and e.state = 'ACTIVE'
+	    ]]>
+	   </select>
+
+	   <select id="selectSalesmanList" parameterClass="java.lang.String" resultMap="empMap">
+	    <![CDATA[
+	      select  e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*
+	   from employee e inner join dept d on e.DEPT_ID = d.DEPT_ID
+	   where e.dept_id = #deptId# and e.position = 'Salesman'
+	    ]]>
+	   </select>
+
+	   <select id="searchEmployee" parameterClass="map" resultMap="empMap">
+	     <![CDATA[
+	   select b.* from
+          (select  e.EMP_ID, e.EMP_NAME, e.phone, e.EMAIL, e.position, e.state, e.img_name, d.*,
+           rownum as rnum,
+	    ]]>
+	       <iterate property="keywordList" conjunction=" + " >
+	         <![CDATA[
+	         case when instr( e.emp_name , #keywordList[]# ) <>0 then 4 else 0 end +
+	         case when instr( d.dept_name, #keywordList[]# ) <>0 then 2 else 0 end +
+	         case when instr( e.email, #keywordList[]# ) <>0 then 1 else 0 end +
+	         case when instr( e.phone , #keywordList[]# ) <>0 then 1 else 0 end
+	         ]]>
+	       </iterate>
+	     <![CDATA[
+	       as relas
+	     from employee e inner join dept d on e.DEPT_ID = d.DEPT_ID
+	     where e.state = 'ACTIVE' and d.dept_id = #deptId# and
+	     ]]>
+	       <iterate property="keywordList" open="(" conjunction=") or (" close=")">
+	         <![CDATA[
+	          e.emp_name like '%' || #keywordList[]# || '%'
+	          or
+	          e.email like '%' || #keywordList[]# || '%'
+	          or
+	          d.dept_name like '%' || #keywordList[]# || '%'
+	          or
+	          e.phone like '%' || #keywordList[]# || '%'
+	         ]]>
+	       </iterate>
+	    <![CDATA[
+	     order by relas desc) b
+       where rnum between #page# and (#page# + #rownum# -1)
 	    ]]>
 	   </select>
 
@@ -86,13 +130,20 @@
 			            select e.emp_id, e.emp_name, e.position, d.dept_name, e.phone, e.email, e.state
 			            from employee e, dept d
 			            where e.dept_id = d.dept_id
+			            and e.position != 'Admin'
 			            <isEqual property="search" compareValue="true">
 			              <isNotEmpty property="searchField">
 			                <isNotEmpty property="searchString" prepend="and">
 			                  <isEqual property="searchOper" compareValue="eq">
-			                      $searchField$ like '%' || #searchString# || '%'
+			                      $searchField$ like #searchString#
 			                  </isEqual>
 			                  <isEqual property="searchOper" compareValue="ne">
+			                      $searchField$ not like #searchString#
+			                  </isEqual>
+			                  <isEqual property="searchOper" compareValue="in">
+			                      $searchField$ like '%' || #searchString# || '%'
+			                  </isEqual>
+			                  <isEqual property="searchOper" compareValue="ni">
 			                      $searchField$ not like '%' || #searchString# || '%'
 			                  </isEqual>
 			                </isNotEmpty>
@@ -115,11 +166,17 @@
 	          <isNotEmpty property="searchField">
 	            <isNotEmpty property="searchString" prepend="and">
 	              <isEqual property="searchOper" compareValue="eq">
-	                  $searchField$ like '%' || #searchString# || '%'
-	              </isEqual>
-	              <isEqual property="searchOper" compareValue="ne">
-	                  $searchField$ not like '%' || #searchString# || '%'
-	              </isEqual>
+                      $searchField$ like #searchString#
+                  </isEqual>
+                  <isEqual property="searchOper" compareValue="ne">
+                      $searchField$ not like #searchString#
+                  </isEqual>
+                  <isEqual property="searchOper" compareValue="in">
+                      $searchField$ like '%' || #searchString# || '%'
+                  </isEqual>
+                  <isEqual property="searchOper" compareValue="ni">
+                      $searchField$ not like '%' || #searchString# || '%'
+                  </isEqual>
 	            </isNotEmpty>
 	          </isNotEmpty>
 	        </isEqual>
@@ -152,7 +209,9 @@
 		<update id="updateEmp" parameterClass="Employee" >
 			update employee
 			set emp_name = #empName#,
+			<isNotEmpty property="password">
 			    password = #password#,
+			</isNotEmpty>
 			    phone = #phone#,
 			    email = #email#,
 			    position = #position#,

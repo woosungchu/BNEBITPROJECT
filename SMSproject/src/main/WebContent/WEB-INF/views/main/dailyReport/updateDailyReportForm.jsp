@@ -1,6 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<c:set var="contextPath" value="${pageContext.request.contextPath }" />
+<link href="${contextPath }/assets/css/message.css" rel="stylesheet">
 <div class="container-fluid xyz">
 	<form class="form-horizontal" action="/dailyReport/updateDailyReport" method="post">
 		<div class="col-lg-3"></div>

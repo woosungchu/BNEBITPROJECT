@@ -11,6 +11,17 @@
 		<result property="type" column="type"/>
 		<result property="dailyPlan.planDate" column="plan_date"/>
 	</resultMap>
+	<!-- 검색용 -->
+	<resultMap extends="planResultMap" class="com.bnebit.sms.vo.Plan" id="planSearchMap">
+		<result property="dailyPlan.weeklyPlan.weeklyPlanId" column="weekly_plan_id"/>
+		<result property="dailyPlan.weeklyPlan.employee.empName" column="emp_name"/>
+	</resultMap>
+	
+	<resultMap class="java.util.HashMap" id="countMap">
+		<result property="empId" column="emp_id"/>
+		<result property="empName" column="emp_name"/>
+		<result property="count" column="count"/>
+	</resultMap>
 	
 	<!-- 계획 조회 -->
 	<select id="selectPlan" parameterClass="com.bnebit.sms.vo.DailyPlan" resultMap="planResultMap">
@@ -52,6 +63,58 @@
 		and emp_id = #empId#
 	</select>
 	
+	<select id="selectTodayDeptPlan" parameterClass="java.lang.String" resultMap="countMap">
+		select a.emp_id, a.emp_name, b.count 
+           from employee a inner join
+           (select emp_id, count(content) as count
+            from (select e.emp_id, e.emp_name, p.content 
+                  from   employee e inner join WEEKLY_PLAN w
+                  on e.emp_id = w.emp_id 
+                  inner join DAILY_PLAN d
+                  on w.weekly_plan_id=d.weekly_plan_id
+                  inner join plan p
+                  on d.daily_plan_id = p.daily_plan_id
+                  where  d.plan_date= trunc(sysdate)
+                      AND e.dept_id= #deptId#
+                      order by p.plan_id) 
+            group by emp_id) b
+            on a.emp_id = b.emp_id
+            order by b.emp_id
+	</select>
+	
+	<select id="searchPlan" parameterClass="map" resultMap="planSearchMap">
+		<![CDATA[
+	     select b.* from                  
+          (select p.plan_id, e.emp_name, wp.WEEKLY_PLAN_ID, dp.PLAN_DATE , p.content , p.type,
+           rownum as rnum
+	       from employee e inner join weekly_plan wp
+	       on wp.EMP_ID = e.EMP_ID 
+	       inner join daily_plan dp 
+	       on dp.WEEKLY_PLAN_ID =  wp.WEEKLY_PLAN_ID
+	       inner join plan p
+	       on p.daily_plan_id = dp.DAILY_PLAN_ID
+	       where e.state = 'ACTIVE' and
+	       ]]>
+	       <isNotEmpty property="empId">
+	       	   <![CDATA[
+		       e.EMP_ID = #empId# and
+		       ]]>
+	       </isNotEmpty>
+	       <isNotEmpty property="deptId">
+	       	  <![CDATA[
+		       e.dept_ID = #deptId# and
+		       ]]>
+	       </isNotEmpty>  
+		      <iterate property="keywordList" open="(" conjunction="or" close=")">
+		         <![CDATA[
+ 		          p.CONTENT like '%' || #keywordList[]# || '%'
+ 		         ]]> 
+		      </iterate>
+		   <![CDATA[
+		   ) b 
+       where rnum between #page# and (#page# + #rownum# -1)  
+		   ]]> 
+	   </select>
 </sqlMap>
 
 

@@ -1,5 +1,7 @@
 package com.bnebit.sms.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -64,5 +66,11 @@ public class ClientRestController {
 		result.setCode(code);
 		result.setUrl("/client/clientView?clientId=" + client.getClientId());
 		return result;
+	}
+
+	@RequestMapping(value = "/searchClient", method = RequestMethod.POST)
+	public Client selectClientByClientCode(HttpServletRequest request) {
+		Client client = clientService.selectClientByClientCode(request);
+		return client;
 	}
 }

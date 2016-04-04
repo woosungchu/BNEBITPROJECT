@@ -238,6 +238,11 @@ public class AdminEmployeeService implements Cryptable{
 		return "사용 가능";
 	}
 
+	// ****************************************************************************************************************** //
+
+	/* 해당 report 가 수정이 이루어 졌을 시 history 에 있는 리스트
+	 * 에서도 수정이 이루어진 상태로 만들어 주기 위한 메소드
+	 * (history에 의해 리스트로 돌아갈 시 수정이 된 상태의 리스트를 보여줌 )*/
 	@SuppressWarnings("unchecked")
 	private void updateDataListOnHistory(HttpSession session)
 	{
@@ -248,6 +253,5 @@ public class AdminEmployeeService implements Cryptable{
 			session.setAttribute("HISTORY_PAGE", pageOption);
 		}catch(Exception e){e.printStackTrace();}
 	}
-	// ****************************************************************************************************************** //
 
 }

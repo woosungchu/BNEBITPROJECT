@@ -3,13 +3,13 @@ window.ClientModule = (function(ClientModule, $, undifined) {
 
   var initInsertForm = function() {
     insertClient();
-    SearchAddrModule.init();
+    SearchAddrModule.initPopup();
   };
 
   var initUpdateForm = function() {
     goClientView();
     updateClient();
-    SearchAddrModule.init();
+    SearchAddrModule.initPopup();
     SearchAddrModule.addressToMap($('#address'));
   };
 
@@ -39,9 +39,8 @@ window.ClientModule = (function(ClientModule, $, undifined) {
     });
   }
 
-  function insertClient() {
+  var insertClient = function() {
     $('#clientForm').ajaxForm({
-      url : contextPath + '/rest/client/insertClient',
       dataType : 'json',
       beforeSerialize : function() {
 
@@ -56,11 +55,10 @@ window.ClientModule = (function(ClientModule, $, undifined) {
         }
       }
     });
-  }
+  };
 
-  function updateClient() {
+  var updateClient = function() {
     $('#clientForm').ajaxForm({
-      url : contextPath + '/rest/client/updateClient',
       dataType : 'json',
       beforeSerialize : function() {
 
@@ -75,7 +73,7 @@ window.ClientModule = (function(ClientModule, $, undifined) {
         }
       }
     });
-  }
+  };
 
   return {
     initUpdate : initUpdateForm,

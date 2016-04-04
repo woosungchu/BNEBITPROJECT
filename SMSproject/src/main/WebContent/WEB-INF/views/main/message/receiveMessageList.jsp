@@ -82,7 +82,7 @@
 							<div class="row">
 								<div id="collapse${vs.count }" class="panel-collapse collapse col-xs-11 text-center" role="tabpanel" aria-labelledby="heading${vs.count }"
 								data-id="${message.checked == 0 ? message.msgId : ''}">
-									<div class="panel-body">${message.content}</div>
+								<textarea class="panel-body accordion-content">${message.content}</textarea>
 		   						</div>
 							</div>
 						</div>

@@ -23,7 +23,7 @@ public class ClientController {
 	@RequestMapping(value = "/clientUpdate", method = RequestMethod.GET)
 	public ModelAndView clientUpdate(PageSet pageSet, String clientId, HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("client", clientService.selectClient(pageSet, clientId));
+		mav.addObject("clientUpdateInfo", clientService.selectClient(pageSet, clientId));
 		mav.addObject("pageInfo", clientService.selectClientList(pageSet, request));
 		mav.setViewName("client/clientUpdate");
 		return mav;

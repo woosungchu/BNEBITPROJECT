@@ -1,4 +1,29 @@
 @CHARSET "UTF-8";
+*{
+	margin: 0px;
+	padding: 0px;
+}
+
+/* basic setting */
+html, body, #wrapper, #page-content-wrapper {
+	width: 100%;
+	height : 100%;
+}
+
+.ellipsis, .ellipsis > h5, .ellipsis > p {
+	width : 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ellipsis:active, .ellipsis > h5:active , .ellipsis > p:active {
+	overflow: visible;
+	text-overflow: clip;
+    white-space: normal;
+    word-break: break-all;
+}
+
 /* color 1, 2, 3*/
 .color-high{
 	color : white;
@@ -12,6 +37,10 @@
 	border-color: #54c67a;
 }
 
+/* c-pointer */
+.c-pointer:hover {
+	cursor: pointer;
+}
 
 /* btn-file */
 .btn-file {
@@ -144,18 +173,63 @@ ul.msg_list li a .message {
     display: inline;
 }
 
-/* 20160315 woosungchu added */
-#userInfoBox{
+/* userInfoModal */
+#userInfoBox, #staffInfoModal{
 	padding-left : 11px;
 	padding-right : 12px;
 }
-#profileImg{
-/* 	border :2px solid #000; */
+#profileImg, #staffImg{
 	width : 100%;
 }
 
-.ui-autocomplete
-{
+/* search */
+#searchContainer ,
+#searchContainer > .row > .col-md-4,
+#searchContainer .panel{
+	height: 100%;
+}
+#searchContainer .row{
+	padding-bottom : 20px;
+}
+#searchContainer .panel-body {
+	/* panel - panel-heading - padding-bottom - container padding*/
+	height: calc(461px - 100px);
+	overflow-y : scroll;
+	padding-bottom: 55px;
+}
+#searchContainer .panel-body > ol{
+	padding : 5px 3px;
+	margin-bottom : 3px;
+	background-color: none;
+}
+
+/* mesagemodal */
+.ui-autocomplete {
 z-index: 1051;
+}
+
+/* searchAddrDiv */
+#searchAddrDiv {
+	display:none;
+	position:fixed;
+	overflow:hidden;
+	z-index:1;
+	-webkit-overflow-scrolling:touch;
+}
+
+#searchAddrDiv {
+	display:none;
+	position:fixed;
+	overflow:hidden;
+	z-index:1;
+	-webkit-overflow-scrolling:touch;
+}
+
+#searchAddrDiv img {
+	cursor:pointer;
+	position:absolute;
+	right:-3px;
+	top:-3px;
+	z-index:1;
 }
 

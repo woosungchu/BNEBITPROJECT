@@ -4,11 +4,11 @@
 <div class="container-fluid">
 	<div class="row-fluid">
 		<div class="col-lg-4 col-md-3 col-sm-2 hidden-xs login-side"></div>
-		<div id="contentBox" class="col-lg-4 col-md-6 col-sm-8 col-xs-12">
+		<div id="contentBox" class="col-lg-4 col-md-6 col-sm-8 col-xs-12" hidden="true">
 			<div class="row">
 				<div id="loginBox" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 					<div class="row"><!-- 상단 row -->
-						<div id="helpBtn">
+						<div id="helpBtn" class="c-pointer">
 							<i class="fa fa-question-circle" 
 								data-container="body" data-toggle="modal" data-target="#helpModal">
 							</i>

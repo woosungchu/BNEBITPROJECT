@@ -11,18 +11,66 @@
 		<title>Insert title here</title>
 		<link href='https://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
 		<script src="${contextPath}/assets/js/jquery-2.2.0.js" type="text/javascript"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
 		<script src="${contextPath}/assets/js/jquery.cookie.js"></script>
+
 		<script type="text/javascript">
 		var contextPath = '${contextPath}';
 		</script>
 		<style type="text/css">
+			#logoutBtn {
+				background: rgba(0, 0, 255, 0.79);
+				color: #fff;
+				border: 0;
+				padding: 0.5em 1em;
+				border-radius : 13px;
+			}
 			#body {
 				background: url('${contextPath}/assets/image/adminBodyBackGround.jpg') no-repeat;
 				 background-position: center top;
     			background-size: 100% 100%;
 			}
-			#menuSideBar{
-				background-color: rgba(0, 0, 102,0.4);
+			p#header{
+				display: block;
+			    -webkit-margin-before: 1em;
+			    -webkit-margin-after: 1em;
+			    -webkit-margin-start: 0px;
+			    -webkit-margin-end: 0px;
+			}
+
+			.basicButton {
+				padding:6px 12px 6px 12px;
+				position:relative;
+
+				background-color:#fcfcfc;
+				background:-moz-linear-gradient(left top -90deg, #fff, #ccc);
+				background:-webkit-linear-gradient(left top -90deg, #fff, #ccc);
+				background:linear-gradient(left top -90deg, #fff, #ccc);
+
+				-moz-box-shadow: 1px 1px 1px #333;
+				-webkit-box-shadow: 1px 1px 1px #333;
+				box-shadow: 1px 1px 1px #333;
+
+				-moz-border-radius:18px;
+				-webkit-border-radius:18px;
+				border-radius:18px;
+
+				font-size:11px;
+				color:#444;
+				text-shadow:1px 1px 0 #fff;
+				display:inline-block;
+				margin-right:10px;
+
+				-moz-transition:0.25s;
+				-webkit-transition:0.25s;
+				transition:0.25s;
+
+				text-decoration:none;
+			}
+
+			.basicButton:hover{
+				text-decoration:none !important;
+				box-shadow:0 0 20px #2b99ff;
 			}
 
 			#bloggertrix_box_menu{padding:0;margin:0;width:245px;list-style:none outside none}
@@ -34,11 +82,11 @@
 
 		</style>
 	</head>
-	<body id="body">
+	<body id="body" style="margin: 8px;">
 		<tiles:insertAttribute name="header"/>
 		<table>
 			<tr>
-				<td id="menuSideBar" height="800px" width="240px" valign="top" style="padding-top: 55px;"><tiles:insertAttribute name="menu"/></td>
+				<td id="menuSideBar" height="800px" width="240px" valign="top" style="padding-top: 30px;"><tiles:insertAttribute name="menu"/></td>
 				<td height="855px" width="1600px" align="center" valign="top" style="padding-left: 15px; padding-right: 15px;"><tiles:insertAttribute name="body"/></td>
 			</tr>
 		</table>

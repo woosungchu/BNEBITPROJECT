@@ -30,6 +30,13 @@ public class Client implements Serializable {
 	@Pattern(regexp = "([0-9]{4})", message="전화번호 형식이 잘못되었습니다", groups = {ClientInsert.class, ClientUpdate.class})
 	private String phone3;
 
+	@Override
+	public String toString() {
+		return "Client [clientId=" + clientId + ", clientCode=" + clientCode + ", clientName=" + clientName
+				+ ", secondName=" + secondName + ", address=" + address + ", phone=" + phone + ", ceo=" + ceo
+				+ ", isDelete=" + isDelete + ", regDate=" + regDate + ", phone1=" + phone1 + ", phone2=" + phone2
+				+ ", phone3=" + phone3 + "]";
+	}
 	public String getPhone1() {
 		return phone1;
 	}

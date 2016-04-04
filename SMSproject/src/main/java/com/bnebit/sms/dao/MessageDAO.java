@@ -26,10 +26,6 @@ public class MessageDAO {
 		return (List<Employee>) sqlMapClientTemplate.queryForList(nameSpace + "searchEmployee", searchEmployee);
 	}
 
-	public List<String> selectReceiverEmailList(String[] receiverEmpIdArr) {
-		return (List<String>) sqlMapClientTemplate.queryForList(nameSpace + "selectReceiverEmailList", receiverEmpIdArr);
-	}
-
 	public int selectUncheckedMessageConut(String receiverEmpId) {
 		return (Integer) sqlMapClientTemplate.queryForObject(nameSpace + "selectUncheckedMessageConut", receiverEmpId);
 	}
@@ -52,5 +48,9 @@ public class MessageDAO {
 
 	public List<Message> selectSendMessageList(Map<String, Object> paramMap) {
 		return (List<Message>) sqlMapClientTemplate.queryForList(nameSpace + "selectSendMessageList", paramMap);
+	}
+
+	public void deleteMessageList(String msgId) {
+		sqlMapClientTemplate.delete(nameSpace + "deleteMessageList", msgId);
 	}
 }

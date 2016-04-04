@@ -1,7 +1,6 @@
 package com.bnebit.sms.util.page;
 
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -275,13 +274,10 @@ public class PageSet implements Serializable {
 		if (pageParamMap == null || pageParamMap.isEmpty()) {
 			return "";
 		}
-
 		StringBuilder paramString = new StringBuilder();
 		Set<String> paramNameSet = pageParamMap.keySet();
-		Iterator<String> iterator = paramNameSet.iterator();
 
-		while (iterator.hasNext()) {
-			String paramName = iterator.next();
+		for (String paramName : paramNameSet) {
 			paramString.append("&");
 			paramString.append(paramName);
 			paramString.append("=");
@@ -310,11 +306,13 @@ public class PageSet implements Serializable {
 
 
 	public void isMobile(HttpServletRequest request) {
-        String userAgent = request.getHeader("user-agent");
-        boolean mobile1 = userAgent.matches(".*(iPhone|iPod|Android|Windows CE|BlackBerry|Symbian|Windows Phone|webOS|Opera Mini|Opera Mobi|POLARIS|IEMobile|lgtelecom|nokia|SonyEricsson).*");
-        boolean mobile2 = userAgent.matches(".*(LG|SAMSUNG|Samsung).*");
-        if(mobile1 || mobile2) {
-        	this.selectPostList = 5;
-        }
+		if (!(this instanceof GridPageSet)) {
+			String userAgent = request.getHeader("user-agent");
+			boolean mobile1 = userAgent.matches(".*(iPhone|iPod|Android|Windows CE|BlackBerry|Symbian|Windows Phone|webOS|Opera Mini|Opera Mobi|POLARIS|IEMobile|lgtelecom|nokia|SonyEricsson).*");
+			boolean mobile2 = userAgent.matches(".*(LG|SAMSUNG|Samsung).*");
+			if(mobile1 || mobile2) {
+				this.selectPostList = 5;
+			}
+		}
     }
 }

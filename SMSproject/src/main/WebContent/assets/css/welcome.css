@@ -15,6 +15,11 @@ body {
     height: 100%;
  }
  
+ /* c-pointer */
+.c-pointer:hover {
+	cursor: pointer;
+}
+ 
  #loginBox {
 	background : rgba(194, 214, 214, 0.8);
 	z-index : 100;
@@ -30,6 +35,11 @@ body {
 	width: 70%;
 	margin : 0 auto;
 }
+
+#loginImgBox{
+	padding : 10px 0;
+}
+
 #user_id {
 	cursor: text;
 }

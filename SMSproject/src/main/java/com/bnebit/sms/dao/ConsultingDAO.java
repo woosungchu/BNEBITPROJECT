@@ -13,17 +13,27 @@ import org.springframework.stereotype.Repository;
 import com.bnebit.sms.util.PageOption;
 import com.bnebit.sms.vo.Consulting;
 import com.bnebit.sms.vo.ConsultingImg;
+import com.bnebit.sms.vo.DailyReport;
 
 @Repository
 public class ConsultingDAO {
 	@Autowired
 	SqlMapClientTemplate sqlMapClientTemplate;
-	
+
 	public ArrayList<Consulting> selectContract(String empId){
 		Map<String,String> map = new HashMap<String, String>();
 		map.put("empId", empId);
 		map.put("rownum", "4");
-		ArrayList<Consulting> list =  
+		ArrayList<Consulting> list =
+				(ArrayList<Consulting>) sqlMapClientTemplate.queryForList("consulting.selectContract", map);
+		return list;
+	}
+
+	public ArrayList<Consulting> selectContractManager(String deptId){
+		Map<String,String> map = new HashMap<String, String>();
+		map.put("deptId", deptId);
+		map.put("rownum", "4");
+		ArrayList<Consulting> list =
 				(ArrayList<Consulting>) sqlMapClientTemplate.queryForList("consulting.selectContract", map);
 		return list;
 	}
@@ -57,17 +67,10 @@ public class ConsultingDAO {
 		return consultingList;
 	}
 
-	// 상담일지 조회
-	@SuppressWarnings("unchecked")
-	public Map<String, Object> selectConsultingView(Consulting consulting) throws SQLException {
-		Map<String, Object> consultingMap = (Map<String, Object>) sqlMapClientTemplate
-				.queryForObject("consulting.selectConsultingView", consulting);
-		return consultingMap;
-	}
-
 	// 상담일지 작성
-	public void insertConsulting(Consulting consulting) throws SQLException {
-		sqlMapClientTemplate.insert("consulting.insertConsulting", consulting);
+	public String insertConsulting(Consulting consulting) throws SQLException {
+		String index = (String) sqlMapClientTemplate.insert("consulting.insertConsulting", consulting);
+		return index;
 	}
 
 	// 상담일지 파일추가
@@ -93,5 +96,30 @@ public class ConsultingDAO {
 	// 상담일지 파일삭제
 	public void deleteConsultingImg(ConsultingImg consultingImg) throws SQLException {
 		sqlMapClientTemplate.delete("consulting.deleteConsultingImg", consultingImg);
+	}
+
+	public ArrayList<Consulting> searchConsulting(String empId, String[] keywordList, int rownum, int page) {
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("empId", empId);
+		map.put("keywordList", keywordList);
+		map.put("rownum", rownum); //늘어날 list 수
+		map.put("page", page);//지금 마지막 list
+
+		ArrayList<Consulting> consultingList = (ArrayList<Consulting>)
+				sqlMapClientTemplate.queryForList("consulting.searchConsulting",map);
+		return consultingList;
+	}
+
+	public ArrayList<Consulting> searchConsultingByDept(String deptId, String[] keywordList, int rownum,
+			int page) {
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("deptId", deptId);
+		map.put("keywordList", keywordList);
+		map.put("rownum", rownum); //늘어날 list 수
+		map.put("page", page);//지금 마지막 list
+
+		ArrayList<Consulting> consultingList = (ArrayList<Consulting>)
+				sqlMapClientTemplate.queryForList("consulting.searchConsulting",map);
+		return consultingList;
 	}
 }

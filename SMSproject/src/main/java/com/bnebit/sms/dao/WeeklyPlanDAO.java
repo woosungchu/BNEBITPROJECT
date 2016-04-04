@@ -19,7 +19,7 @@ import com.bnebit.sms.vo.WeeklyPlan;
 public class WeeklyPlanDAO {
 	@Autowired
 	SqlMapClientTemplate sqlMapClientTemplate;;
-	
+
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	@SuppressWarnings("unchecked")
 	public List<Map<String,Object>> selectWeeklyPlanList(PageOption<Map<String, Object>> pageOption) throws SQLException {
@@ -32,12 +32,22 @@ public class WeeklyPlanDAO {
 		return records;
 	}
 
+	@SuppressWarnings("unchecked")
+	public ArrayList<WeeklyPlan> selectWeeklyListFromEmp(String empId) {
+		ArrayList<WeeklyPlan> list = (ArrayList<WeeklyPlan>)sqlMapClientTemplate.queryForList("weeklyPlan.selectWeeklyListFromEmp",empId);
+		return list;
+	}
+
 	public void deleteWeeklyPlanList(String[] ids) throws SQLException {
 		sqlMapClientTemplate.delete("weeklyPlan.deleteWeeklyPlanList",ids);
 	}
 
 	public void deleteWeeklyPlan(String id) throws SQLException {
 		sqlMapClientTemplate.delete("weeklyPlan.deleteWeeklyPlan",id);
+	}
+
+	public void updateWeeklyPlanTitle(WeeklyPlan weeklyPlan) throws SQLException {
+		sqlMapClientTemplate.update("weeklyPlan.updateWeeklyPlanTitle",weeklyPlan);
 	}
 	/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 	public ArrayList<WeeklyPlan> selectWeeklyPlanListEmp(String empId, int rownum) throws Exception{
@@ -117,5 +127,9 @@ public class WeeklyPlanDAO {
 
 	public int selectWeeklySalesGoal(String empId) {
 		return (int)sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklySalesGoal",empId);
+	}
+
+	public int selectWeeklySalesGoalManager(String deptId) {
+		return (int)sqlMapClientTemplate.queryForObject("weeklyPlan.selectWeeklySalesGoalManager",deptId);
 	}
 }

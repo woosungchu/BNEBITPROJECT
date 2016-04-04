@@ -34,8 +34,6 @@ $(document).ready(function(){
 
 	function checkParemeterExists(){
 	   var fullQString = window.location.search.substring(1);
-	   var paramCount = 0;
-	   var queryStringComplete = "?";
 
 	   if(fullQString.length > 0){
 	       paramArray = fullQString.split("&");
@@ -54,7 +52,6 @@ $(document).ready(function(){
 				case 'IMG_SUCCESS':
 					$newImg = $('img[alt=ProfileImg]');
 					$newImg.attr('src',$newImg.attr('src')+'?'+ new Date().getTime());
-//					$('#UserInfo').click(); //안먹힘
 					break;
 				}
 
@@ -67,14 +64,80 @@ $(document).ready(function(){
 	$(document).on('change', '.btn-file :file', function() {
 	      $('#modImgForm').submit();
 	});
-
+	
+	//search하기 전의 페이지 Data
+	var backupContainerData ;
+	$(window).load(function(){
+		backupContainerData = $('#page-content-wrapper').html();
+	})
+	$('#searchBtn').click(searchKeyword);
+	$('#searchInput').keyup(searchKeyword);
+	$('#footerInput').keyup(searchKeyword);
+	//검색
+	function searchKeyword(){
+		var $container = $('#page-content-wrapper');
+		var keyword = $('#searchInput').val();
+		
+		$container.html('');
+		if(keyword.trim() != ''){
+			//성공적으로 검색결과창 불러왔는지 여부
+			$container.load('/searchResult?keyword='+encodeURIComponent(keyword) , 
+					function(responseText, textStatus, XMLHttpRequest){
+				if(textStatus == "success"){
+					//load되는 page 안에 script 실행.
+				
+				}else{//Load SUCCESS
+					alert("Load Failed!!!");
+				}
+			});
+		}else{
+			$container.html(backupContainerData);
+		}
+	}
+	
+	
+	
 	function init(){
 		checkParemeterExists();
+		$('.btn-staff-info').on('click',staffInfo);
 	}
 
 	init();
 });
 
-//file input
+//staffInfoModal
+//staff click event
+function staffInfo(){
+	var empId = $(this)[0].dataset.empId;
+	var html = '';
+	$.ajax({
+		url : '/staffInfo',
+		data : {
+			empId : empId
+		},
+		success : function(result){
+			if(result.imgName === 'NONAME' || !result.imgName){
+				$('#staffImg').attr('src','/assets/image/noname.png');
+			}else{
+				$('#staffImg').attr('src','/Upload/'+result.imgName);
+			}
+			var position;
+			if(result.position === 'Salesman'){
+				position = ' 팀원'
+			}else if(result.position ==='Manager'){
+				position = ' 팀장'
+			}
+
+			html += '<h4> '+result.empName;
+			html += '<small> '+result.dept.deptName + position + '</small>';
+			html += '</h4> '
+			html += '<h5>연락처 : '+result.phone+'</h5>';
+			html += '<h5>이메일 : '+result.email+'</h5>';
+
+			$('#staff-info').html(html);
+		}
+	})
+	$('#staffInfoModal').modal('show');
+}
 
 

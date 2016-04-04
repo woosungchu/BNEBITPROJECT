@@ -26,8 +26,8 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 	<select id="searchEmployee" parameterClass="Employee" resultClass="Employee">
 	    SELECT
 	    	emp_id as empId,
-	    	emp_name as empName,
-	    	position
+	    	email,
+	    	emp_name as empName
 	    FROM
 		    employee
 	    WHERE
@@ -38,19 +38,6 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
     		position != 'Admin'
 		and
 			emp_name LIKE '%' || #empName# || '%'
-	</select>
-
-	<select id="selectReceiverEmailList" resultClass="String">
-	  	select
-	  		email
-		from
-			employee
-		<dynamic prepend="where">
-			emp_id
-			<iterate open=" in (" conjunction="," close=")">
-			    #[]#
-		    </iterate>
-		</dynamic>
 	</select>
 
 	<select id="selectUncheckedMessageConut" parameterClass="String" resultClass="int">
@@ -106,6 +93,8 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 		<result property="msgDate" column="msgDate"/>
 		<result property="sender.empName" column="emp_name"/>
 		<result property="sender.email" column="email"/>
+		<result property="sender.position" column="position"/>
+		<result property="sender.dept.deptName" column="dept_name"/>
 	</resultMap>
 
 	<select id="selectReceiveMessageList" parameterClass="Map" resultMap="receiveMessageMap">
@@ -118,11 +107,19 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
             	select
             		m.msg_id, m.content, m.checked, TO_CHAR(m.msg_date, 'RR/MM/DD hh24:mi:ss') msgDate,
               		e.emp_name,
-              		e.email
+              		e.email,
+              		e.position,
+              		d.dept_name
             	from
-              		message m inner join employee e
+              		message m
+         		inner join
+         			employee e
            		on
            			m.sender = e.emp_id
+      			inner join
+      				dept d
+  				on
+  					e.dept_id = d.dept_id
            		where
               		m.emp_id = #empId#
              	<include refid="searchMessage"/>
@@ -165,6 +162,8 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
 		<result property="msgDate" column="msgDate"/>
 		<result property="receiver.empName" column="emp_name"/>
 		<result property="receiver.email" column="email"/>
+		<result property="receiver.position" column="position"/>
+		<result property="receiver.dept.deptName" column="dept_name"/>
 	</resultMap>
 
 	<select id="selectSendMessageList" parameterClass="Map" resultMap="sendMessageMap">
@@ -177,11 +176,19 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
             	select
             		m.msg_id, m.content, m.checked, TO_CHAR(m.msg_date, 'RR/MM/DD hh24:mi:ss') msgDate,
               		e.emp_name,
-              		e.email
+              		e.email,
+              		e.position,
+              		d.dept_name
             	from
-              		message m inner join employee e
-           		 on
-	    			m.emp_id = e.emp_id
+              		message m
+           		inner join
+           			employee e
+           		on
+           			m.emp_id = e.emp_id
+    			inner join
+    				dept d
+				on
+					e.dept_id = d.dept_id
 	    		where
 	    			sender = #empId#
              	<include refid="searchMessage"/>
@@ -195,4 +202,11 @@ PUBLIC "-//ibatis.apache.org/DTD SQL Map 2.0/EN"
       		rnum > #pageSet.listStartNum#
 	</select>
 
+
+	<delete id="deleteMessageList" parameterClass="String">
+		delete from
+  			message
+		where
+			msg_id = #msgId#
+	</delete>
 </sqlMap>

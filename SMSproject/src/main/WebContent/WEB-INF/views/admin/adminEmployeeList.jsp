@@ -3,14 +3,25 @@
 <%@page language="java" session="true" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"></c:set>
 
-<html>
-	<head>
 		<title>adminEmployeeList</title>
 		<link rel="stylesheet" type="text/css" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css"/>
 		<link rel="stylesheet" type="text/css" media="screen" href="${contextPath}/assets/css/ui.jqgrid.css"/>
+
+		<span style="font-family: 'Poiret One',cursive;font-size: 50px;color: yellow; padding-bottom: 25px;">Employee List</span>
+		<table id="grid"></table>
+		<div  id="pager"></div>
+		<p align="left">
+			<button id="resetSelect" class="basicButton">선택 초기화</button>
+			<button id="removeSelectedList" class="basicButton">선택 목록 삭제</button>
+			<button id="sendMessage" class="basicButton">메시지 전송</button>
+			<a href="/admin/employee/viewEmployeeAddForm"><button id="addEmployee" class="basicButton">직원 추가</button></a>
+		</p>
+
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
 		<script src="${contextPath}/assets/js/grid.locale-kr.js" type="text/javascript"></script>
 		<script src="${contextPath}/assets/js/jquery.jqgrid.src.js" type="text/javascript"></script>
+		<script src="${contextPath}/assets/js/admin/map.js" type="text/javascript"></script>
+		<script src="${contextPath}/assets/js/admin/popup.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var $Grid = {};
 			var historyPageObject = !'${historyPage}' ? null : JSON.parse('${historyPage}');
@@ -39,13 +50,19 @@
 	                     		],
 	          		colModel : [
 	                    		{ name : 'empId',         /* width:100,  align:'center', index:'e.emp_id' ,*/ hidden:true},
-	                    		{ name : 'email',       width:400,  align:'center', index:'e.email' , formatter:custom_link},
-	                    		{ name : 'empName', 	  width:150,  align:'center', index:'e.emp_name'},
-	                    		{ name : 'position', width:150,  align:'center', index:'e.position'},
-	                    		{ name : 'dept.deptName',  	      width:200,  align:'center', index:'d.dept_name'},
-	                    		{ name : 'phone',  	  	  width:200,  align:'center', index:'e.phone'},
-	                    		{ name : 'state',  	  	  width:300,  align:'center', index:'e.state'}
+	                    		{ name : 'email',       width:400,  align:'center', index:'e.email', searchoptions:{sopt:['eq','ne','in','ni']}, formatter:custom_link},
+	                    		{ name : 'empName', 	  width:150,  align:'center', index:'e.emp_name', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'position', width:150,  align:'center', index:'e.position', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'dept.deptName',  	      width:200,  align:'center', index:'d.dept_name', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'phone',  	  	  width:200,  align:'center', index:'e.phone', searchoptions:{sopt:['eq','ne','in','ni']}},
+	                    		{ name : 'state',  	  	  width:300,  align:'center', index:'e.state', searchoptions:{sopt:['eq','ne','in','ni']}}
 	            	],
+	            	search : true,
+	            	postData : {
+	            		searchField : historyPageObject == null ? '' : historyPageObject.searchField,
+	            		searchString : historyPageObject == null ? '' : historyPageObject.searchString,
+	            	    searchOper : historyPageObject == null ? '' : historyPageObject.searchOper
+	            	},
 	            	caption: '사용자 목록',
 	            	rowNum : historyPageObject == null ? 30 : historyPageObject.rows,
 	          		rowList: [2, 3, 5, 10, 15, 20, 25, 30],
@@ -87,24 +104,23 @@
 	             		});
 	                	$('#removeSelectedList').click(function(){
 	                		var idList = new Array();	// 선택 되어진 id 들을 저장할 배열.
-	                		var idsCount = 0;		// 선택 된 id 의 배열 인덱스.
 							var cookies = $.cookie();
 							for(var cookie in cookies)
 							{
-								idList[idsCount] = $.cookie(cookie);
-								idsCount = idsCount + 1;
+								idList.push(cookie);
 								$.removeCookie(cookie);
 							}
-							idList[idList.length-1] = 0; // 마지막 쿠키는 JESSIONID 값으로 불필요 함. JSESSIONID : 고유한 쿠키의 ID 값.
-	                		$.ajaxSettings.traditional = true;
+							idList.pop(); // 마지막 쿠키는 JESSIONID 값으로 불필요 함. JSESSIONID : 고유한 쿠키의 ID 값.
 	                		$.ajax({
 								url:'${contextPath}/admin/employee/deleteEmployeeList',
 								data:{
 									'ids':idList
 								},
-								type:'get'
+								type:'post',
+								success: function() {
+									window.location.reload();	// 페이지 새로 고침
+								}
 	                		});
-	                		window.location.reload();	// 페이지 새로 고침
 	                	});
 	                },
 	                onCellSelect: function(rowid, iCol,cellcontent, e){
@@ -117,7 +133,8 @@
 		         			 }
 		         			 else						// 현재 선택한 rowid 가 쿠키에 없으면 저장.
 		         			 {
-		         				$.cookie(rowid,rowid);
+		         				var rowData = $Grid.jqGrid('getRowData', rowid);
+		         				$.cookie(rowid,(rowData.email.split('>')[1]).split('<')[0]);
 		         			 }
 	          	         }
 	          		},
@@ -133,7 +150,8 @@
 	          			{
 	          				for(var i=0; i<aRowids.length; i++)	// 모든 row 쿠키에 저장.
 	          				{
-	          					$.cookie(aRowids[i],aRowids[i]);
+	          					var rowData = $Grid.jqGrid('getRowData', aRowids[i]);
+	          					$.cookie(aRowids[i],(rowData.email.split('>')[1]).split('<')[0]);
 	          				}
 	          			}
 	          			else									// 모든 row 쿠키에서 제거.
@@ -162,20 +180,8 @@
 	 				return html;
 	 			}
 
+	 			AdminPopupModule.popupMessage();
+
 		});
 		</script>
-	</head>
-	<body>
-		<span style="font-family: 'Poiret One',cursive;font-size: 50px;color: yellow; padding-bottom: 25px;">Employee List</span>
-		<table id="grid"></table>
-		<div  id="pager"></div>
-		<p align="left">
-			<button id="resetSelect" class="button">선택 초기화</button>
-			<button id="removeSelectedList" class="button">선택 목록 삭제</button>
-		</p>
-		<p align="left">
-			<a href="/admin/employee/viewEmployeeAddForm"><button id="addEmployee" class="button">직원 추가</button></a>
-		</p>
-	</body>
-</html>
 

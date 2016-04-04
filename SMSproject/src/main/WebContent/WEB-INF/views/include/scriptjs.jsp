@@ -18,7 +18,7 @@
 <script src="${contextPath}/assets/js/header.js"></script>
 
 <!-- 웹소켓  -->
-<script type="text/javascript"  src="${contextPath }/assets/js/socket/sockjs.min.js"></script>
+<script type="text/javascript"  src="${contextPath }/assets/js/socket/sockjs-1.0.3.js"></script>
 <script type="text/javascript"  src="${contextPath }/assets/js/socket/stomp.js"></script>
 
 <script type="text/javascript"  src="${contextPath }/assets/js/tag-it.js"></script>

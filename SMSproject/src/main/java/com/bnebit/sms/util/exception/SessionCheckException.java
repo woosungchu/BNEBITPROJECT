@@ -1,38 +1,30 @@
 package com.bnebit.sms.util.exception;
 
-public class SessionCheckException extends RuntimeException {
-	private static final long serialVersionUID = 4119269124325858464L;
+//리팩토링 후 안 쓰는 Exception
+@Deprecated
+public class SessionCheckException extends RuntimeException{
 
-	private String code;
+	private static final long serialVersionUID = 1L;
+
 	private String message;
-	private String url;
-
+	private String url = "/error/errorPage";
+	
+	public SessionCheckException() {
+		this.message = "에러가 났네요~ 에러가 났어요~";
+	}
+	
 	public SessionCheckException(String message) {
 		this.message = message;
 	}
-
-	public String getCode() {
-		return code;
-	}
-
+	
 	public String getMessage() {
 		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 	public String getUrl() {
 		return url;
 	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
 }

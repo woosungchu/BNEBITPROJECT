@@ -12,6 +12,7 @@
 	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
 
 	<resultMap id="dailyReportMap" class="java.util.HashMap">
+		<result property="empId" column="emp_id"/>
 		<result property="dailyReportId" column="daily_report_id"/>
 		<result property="title" column="title"/>
 		<result property="memberName" column="member_name"/>
@@ -20,27 +21,15 @@
 		<result property="profit" column="profit"/>
 		<result property="regDate" column="reg_date"/>
 	</resultMap>
-		
-	<!-- 메인페이지에 필요한 주간 매출액을 뽑아냄 -->
-	<select id="selectWeeklyProfits" parameterClass="java.lang.String" resultClass="java.lang.Integer">
-		select sum(profit) from daily_report
-	      where emp_id = #empId# 
-	      and trunc(reg_date) in 
-	      (select plan_date
-	      from daily_plan dp inner join weekly_plan wp
-	      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
-	      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
-	      and emp_id = #empId#)
-	</select>
 
 	<!-- 모든 일일업무 보고 일지를 목록을 통하여 보여줌   -->
 	<select id="selectDailyReportList" parameterClass="pageOption" resultMap="dailyReportMap">
-		select a.daily_report_id, a.title, a.member_name, a.manager_name, a.dept_name, a.profit, a.reg_date
+		select a.emp_id, a.daily_report_id, a.title, a.member_name, a.manager_name, a.dept_name, a.profit, a.reg_date
 		from (
-		        select ROWNUM as rnum, b.daily_report_id, b.title, b.member_name, b.manager_name, b.dept_name, b.profit, to_char(b.reg_date,'YYYY.MM.DD HH24:MI:SS') reg_date
+		        select ROWNUM as rnum, b.emp_id, b.daily_report_id, b.title, b.member_name, b.manager_name, b.dept_name, b.profit, to_char(b.reg_date,'YYYY.MM.DD') reg_date
 		        from
 		        (
-		            select c.daily_report_id, c.title, e.member_name, e.manager_name, e.dept_name, c.profit, c.reg_date
+		            select e.emp_id, c.daily_report_id, c.title, e.member_name, e.manager_name, e.dept_name, c.profit, c.reg_date
 		            from daily_report c,
 		            (
 			              select e.emp_id, f.dept_id, f.dept_name, e.emp_name member_name, g.emp_name manager_name
@@ -54,10 +43,16 @@
 		              <isNotEmpty property="searchField">
 		                <isNotEmpty property="searchString" prepend="and">
 		                  <isEqual property="searchOper" compareValue="eq">
-		                    $searchField$ like '%' || #searchString# || '%'
+		                      $searchField$ like #searchString#
 		                  </isEqual>
 		                  <isEqual property="searchOper" compareValue="ne">
-		                    $searchField$ not like '%' || #searchString# || '%'
+		                      $searchField$ not like #searchString#
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="in">
+		                      $searchField$ like '%' || #searchString# || '%'
+		                  </isEqual>
+		                  <isEqual property="searchOper" compareValue="ni">
+		                      $searchField$ not like '%' || #searchString# || '%'
 		                  </isEqual>
 		                  <isEqual property="searchOper" compareValue="ge">
 		                    $searchField$ <![CDATA[ >= ]]> #searchString#
@@ -98,11 +93,17 @@
 			<isNotEmpty property="searchField">
 				<isNotEmpty property="searchString" prepend="and">
 					<isEqual property="searchOper" compareValue="eq">
-						$searchField$ like '%' || #searchString# || '%'
-					</isEqual>
-					<isEqual property="searchOper" compareValue="ne">
-						$searchField$ not like '%' || #searchString# || '%'
-					</isEqual>
+                        $searchField$ like #searchString#
+                    </isEqual>
+                    <isEqual property="searchOper" compareValue="ne">
+                        $searchField$ not like #searchString#
+                    </isEqual>
+                    <isEqual property="searchOper" compareValue="in">
+                        $searchField$ like '%' || #searchString# || '%'
+                    </isEqual>
+                    <isEqual property="searchOper" compareValue="ni">
+                        $searchField$ not like '%' || #searchString# || '%'
+                    </isEqual>
 					<isEqual property="searchOper" compareValue="ge">
 						$searchField$ <![CDATA[ >= ]]> #searchString#
 					</isEqual>
@@ -204,6 +205,9 @@
 		</isNotEmpty>
 		<isNotEmpty property="deptId">
 				and dept_id = #deptId#
+				<![CDATA[
+				and reg_date < trunc(sysdate)
+				]]>
 		</isNotEmpty>
 		<isNotEmpty property="searchKey">
 			<isNotEmpty property="searchValue">
@@ -221,8 +225,8 @@
 		</isNotEmpty>
 	</select>
 
-	<!-- 일일보고 목록조회(팀장) -->
-	<select id="selectDailyReportListLeader" parameterClass="java.util.HashMap"
+	<!-- 일일보고 목록조회 -->
+	<select id="selectDailyReportListForUser" parameterClass="java.util.HashMap"
 		resultMap="selectDailyReportListMap">
 		select d2.daily_report_id, d2.title, d2.emp_id, d2.emp_name, d2.reg_date, d2.feedback
 		from (
@@ -231,43 +235,15 @@
 				  select rownum rnum, daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date, feedback
 				  from employee, daily_report
 				  where employee.emp_id = daily_report.emp_id
-				  and dept_id = #deptId#
-					<isNotEmpty property="searchKey">
-						<isNotEmpty property="searchValue">
-							<isEqual property="searchKey" compareValue="title" prepend="and">
-								title like '%' || #searchValue# || '%'
-							</isEqual>
-							<isEqual property="searchKey" compareValue="writer" prepend="and">
-								emp_name like '%' || #searchValue# || '%'
-							</isEqual>
-							<isEqual property="searchKey" compareValue="regDate"
-								prepend="and">
-								reg_date like '%' || #searchValue# || '%'
-							</isEqual>
-						</isNotEmpty>
-					</isNotEmpty>
-					<isEmpty property="sortKey" prepend="order by">
-						daily_report_id desc
-					</isEmpty>
-					<isNotEmpty property="sortKey" prepend="order by">
-						$sortKey$ $sortBy$
-					</isNotEmpty>
-			) d
-			order by rnum2) d2
-		where d2.rnum2 between #startNum# and #endNum#
-	</select>
-
-	<!-- 일일보고 목록조회(팀원) -->
-	<select id="selectDailyReportListWorker" parameterClass="java.util.HashMap"
-		resultMap="selectDailyReportListMap">
-		select d2.daily_report_id, d2.title, d2.emp_id, d2.emp_name, d2.reg_date, d2.feedback
-		from (
-			select rownum rnum2, d.daily_report_id, d.title, d.emp_id, d.emp_name, d.reg_date, d.feedback
-			from (
-				  select rownum rnum, daily_report_id, title, employee.emp_id, emp_name, to_char(reg_date, 'RRRR/MM/DD') reg_date, feedback
-				  from employee, daily_report
-				  where employee.emp_id = daily_report.emp_id
-				  and employee.emp_id = #empId#
+				<isNotEmpty property="deptId">
+					and dept_id = #deptId#
+					<![CDATA[
+					and reg_date < trunc(sysdate)
+					]]>
+				</isNotEmpty>
+				<isNotEmpty property="empId">
+					and employee.emp_id = #empId#
+				</isNotEmpty>
 					<isNotEmpty property="searchKey">
 						<isNotEmpty property="searchValue">
 							<isEqual property="searchKey" compareValue="title" prepend="and">
@@ -328,8 +304,8 @@
 
 	<!-- 일일보고 작성 -->
 	<insert id="insertDailyReport" parameterClass="dailyReport">
-		insert into daily_report (daily_report_id, title, emp_id, departure, arrival, profit, reg_date, content, feedback)
-		values (seq_daily_report_id.nextval, #title#, #employee.empId#, #departure#, #arrival#, #profit#, sysdate, #content#, null)
+		insert into daily_report (daily_report_id, title, emp_id, departure, arrival, profit, content, feedback)
+		values (seq_daily_report_id.nextval, #title#, #employee.empId#, #departure#, #arrival#, #profit#, #content#, null)
 	</insert>
 
 	<!-- 일일보고 수정 -->
@@ -343,5 +319,95 @@
 		and feedback is null
 	</update>
 
+	<!-- 메인페이지에 필요한 주간 매출액을 뽑아냄 -->
+	<select id="selectWeeklyProfits" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select sum(profit) from daily_report
+	      where trunc(reg_date) in
+			      (select plan_date
+			      from daily_plan dp inner join weekly_plan wp
+			      		on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
+			      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
+			     		 and emp_id = #empId#
+			      )
+	</select>
+	<select id="selectWeeklyProfitsManager" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select sum(dr.profit) from daily_report dr
+	      inner join employee e
+	      on dr.emp_id = e.emp_id
+		      where trunc(reg_date) in
+			      (select plan_date
+			      from daily_plan dp inner join weekly_plan wp
+			      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
+		        inner join employee e
+		        on wp.EMP_ID = e.emp_id
+			      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
+		        and e.dept_id = #deptId#)
+	</select>
+
+	<!-- ***********   Weekly Plan 과 연결하는 쿼리      *************************************************************************************** -->
+	<select id="selectDailyReportByEmpDate" parameterClass="com.bnebit.sms.vo.DailyReport" resultClass="java.lang.String">
+		select daily_report_id
+		from DAILY_REPORT
+		where emp_id=#employee.empId#
+					AND reg_date=#regDate#
+	</select>
+	<resultMap class="DailyReport" id="dailyReportSearchMap">
+		<result property="dailyReportId" column="daily_report_id"/>
+		<result property="employee.empId" column="emp_id"/>
+		<result property="employee.empName" column="emp_name"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="feedback" column="feedback"/>
+		<result property="regDate" column="reg_date"/>
+	</resultMap>
+
+	<!-- 검색 woosungchu -->
+	<select id="searchDailyReport" parameterClass="map" resultMap="dailyReportSearchMap">
+     <![CDATA[
+   select b.* from
+      (select dr.daily_report_id, dr.emp_id, e.EMP_NAME, dr.title, dr.content, dr.feedback, dr.reg_date,
+   		rownum as rnum,
+     ]]>
+       <iterate property="keywordList" conjunction=" + " >
+         <![CDATA[
+         case when instr( e.emp_name , #keywordList[]# ) <>0 then 2 else 0 end +
+         case when instr( dr.title , #keywordList[]# ) <>0 then 4 else 0 end +
+             case when instr( dr.content , #keywordList[]# ) <>0 then 1 else 0 end +
+             case when instr( dr.feedback , #keywordList[]# ) <>0 then 1 else 0 end
+         ]]>
+       </iterate>
+     <![CDATA[
+       as relas
+     from employee e inner join daily_report dr on e.emp_id = dr.emp_id
+     inner join dept d on e.dept_id = d.dept_id
+     	where e.state = 'ACTIVE' and
+     ]]>
+     	<isNotEmpty property="empId">
+     		<![CDATA[
+             dr.emp_id = #empId# and
+             ]]>
+     	</isNotEmpty>
+     	<isNotEmpty property="deptId">
+     		<![CDATA[
+     		dr.reg_date < trunc(sysdate) and
+             d.dept_id = #deptId# and
+             ]]>
+     	</isNotEmpty>
+       <iterate property="keywordList" open="(" conjunction=" or " close=")">
+         <![CDATA[
+          e.emp_name like '%' || #keywordList[]# || '%'
+          or
+          dr.title like '%' || #keywordList[]# || '%'
+          or
+          dr.content like '%' || #keywordList[]# || '%'
+          or
+          dr.feedback like '%' || #keywordList[]# || '%'
+         ]]>
+       </iterate>
+    <![CDATA[
+     order by relas desc) b
+    where rnum between #page# and (#page# + #rownum# -1)
+    ]]>
+   </select>
 </sqlMap>
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->

@@ -59,8 +59,8 @@
 
 	<!-- 쿼리 출력 -->
 	<category name="java.sql.PreparedStatement">
-		<priority value="DEBUG" />
-		<!-- <appender-ref ref="sql" /> -->
+		<!-- <priority value="DEBUG" />
+		<appender-ref ref="sql" /> -->
 	</category>
 
 	<!-- 기본 출력 설정 -->

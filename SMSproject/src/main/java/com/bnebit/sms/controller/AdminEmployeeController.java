@@ -85,8 +85,8 @@ public class AdminEmployeeController {
 		return service.getPageOptionEmployeeList(pageOption, search, session);
 	}
 
-	@RequestMapping(value = "/deleteEmployeeList", method = RequestMethod.GET)
-	public void deleteEmployeeList(@RequestParam(value="ids") String[] ids, HttpSession session) throws SQLException {
+	@RequestMapping(value = "/deleteEmployeeList", method = RequestMethod.POST)
+	public @ResponseBody void deleteEmployeeList(@RequestParam(value="ids[]") String[] ids, HttpSession session) throws SQLException {
 		service.removeEmployeeList(ids);
 	}
 

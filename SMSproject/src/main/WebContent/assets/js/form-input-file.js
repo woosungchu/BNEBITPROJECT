@@ -1,3 +1,4 @@
+
 $(document).ready(function(){
    var fileTarget = $('.filebox .upload-hidden');
 
@@ -46,9 +47,10 @@ $(document).ready(function(){
     });
 
     $('#noImgBtn').click(function(){
+    	var path = contextPath + '/assets/image/noname.png';
     	var parent = $(this).parent();
         parent.children('.upload-display').remove();
-        parent.prepend('<div class="upload-display"><div class="upload-thumb-wrap"><img src="/Upload/noname.png" class="upload-thumb"></div></div>');
+        parent.prepend('<div class="upload-display"><div class="upload-thumb-wrap"><img src="'+path+'" class="upload-thumb"></div></div>');
         $('.upload-name').val("NONAME");
         $('#inputNoImage').val("NONAME");
     });

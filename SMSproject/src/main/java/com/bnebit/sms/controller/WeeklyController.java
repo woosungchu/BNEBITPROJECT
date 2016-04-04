@@ -7,7 +7,9 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
@@ -60,6 +62,11 @@ public class WeeklyController {
 		ModelAndView mav = weeklyService.viewWeeklyPlan(session, weeklyPlanId);
 		return mav;
 	}
+	@RequestMapping(value="viewEmpPlan")
+	public ModelAndView viewEmpPlan(String empId, String planDate) throws Exception{
+		ModelAndView mav=weeklyService.viewEmpPlan(empId, planDate);
+		return mav;
+	}
 	/////////////////////////////////////////////////////////ajax!!!!!!!!!!!
 	@RequestMapping(value="viewPlan")
 	public ModelAndView viewPlan(String empId, String planDate) throws Exception{
@@ -75,12 +82,16 @@ public class WeeklyController {
 		ModelAndView mav=weeklyService.inputWeeklyPlan(session, empId, monday);
 		return mav;
 	}
+	@RequestMapping(value="checkWeeklyPlanId", method=RequestMethod.POST)
+	public @ResponseBody String checkWeeklyPlanId(HttpSession session, String monday) throws Exception{
+		return weeklyService.checkWeeklyPlanId(session, monday);
+	}
 	/*
 	 * 주간계획이 존재하는지 확인
 	 * */
 	@RequestMapping(value="checkWeeklyPlan")
-	public ModelAndView checkWeeklyPlan(String empId, String monday) throws Exception{
-		ModelAndView mav=weeklyService.checkWeeklyPlan(empId, monday);
+	public ModelAndView checkWeeklyPlan(HttpSession session, String monday) throws Exception{
+		ModelAndView mav=weeklyService.checkWeeklyPlan(session, monday);
 		return mav;
 	}
 	/*
@@ -96,25 +107,16 @@ public class WeeklyController {
 	 *
 	 * */
 	@RequestMapping(value="inputPlan")
-	public ModelAndView inputPlan(String dailyPlanId, String content)throws Exception{
-		Plan plan=new Plan();
-		DailyPlan daily=new DailyPlan();
-		daily.setDailyPlanId(dailyPlanId);
-		plan.setDailyPlan(daily);
-		plan.setContent(content);
-		plan.setType("0");
-		System.out.println(plan);
-		ModelAndView mav=weeklyService.inputPlan(plan);
-		return mav;
+	public @ResponseBody String inputPlan(String dailyPlanId, String content)throws Exception{
+		return weeklyService.inputPlan(dailyPlanId, content);
 	}
 	/*
 	 * 계획 삭제
 	 *
 	 * */
 	@RequestMapping(value="removePlan")
-	public ModelAndView removePlan(String planId)throws Exception{
-		ModelAndView mav=weeklyService.removePlan(planId);
-		return mav;
+	public @ResponseBody String removePlan(String planId)throws Exception{
+		return weeklyService.removePlan(planId);
 	}
 	/*
 	 * 저장버튼 클릭
@@ -122,36 +124,34 @@ public class WeeklyController {
 	 * */
 	@RequestMapping(value="saveWeeklyPlan")
 	public ModelAndView saveWeeklyPlan(@RequestParam("monday") String monday, @RequestParam("dailyPlanList") String dailyPlanListJson, HttpSession session) throws Exception{
-			System.out.println(monday);
 		Gson gson = new Gson();
 		Type type = new TypeToken<ArrayList<DailyPlan>>() {}.getType();
 		ArrayList<DailyPlan> dailyPlanList = gson.fromJson(dailyPlanListJson, type);
 
-		ModelAndView mav=weeklyService.saveWeeklyPlan(monday, dailyPlanList, session);
+		ModelAndView mav=weeklyService.saveWeeklyPlan(session, monday, dailyPlanList);
 		return mav;
 	}
-	/*
-	 * 팀장 달력조회
-	 * viewCalendarLeader.jsp 페이지로 이동
-	 * */
-	@RequestMapping(value="calendarLeader")
-	public ModelAndView calendarLeader(String deptId)throws Exception{
-		ModelAndView mav=weeklyService.calendarLeader(deptId);
+	@RequestMapping(value="checkDailyPlan", method=RequestMethod.POST)
+	public @ResponseBody boolean checkDailyPlan(HttpSession session, String planDate) throws Exception{
+		return weeklyService.checkDailyPlan(session, planDate);
+	}
+	@RequestMapping(value="inputPlanCalendar", method=RequestMethod.POST)
+	public ModelAndView inputPlanCalendar(HttpSession session, String planDate, String content) throws Exception{
+		ModelAndView mav=weeklyService.inputPlanCalendar(session, planDate, content);
 		return mav;
 	}
-	@RequestMapping(value="checkDailyPlan")
-	public ModelAndView checkDailyPlan(String empId, String planDate) throws Exception{
-		ModelAndView mav=weeklyService.checkDailyPlan(empId, planDate);
+	@RequestMapping(value="getSessionData")
+	public @ResponseBody String getSessionData(HttpSession session) throws Exception{
+		return weeklyService.getSessionData(session);
+	}
+	@RequestMapping(value="calendarGetPlan", method=RequestMethod.POST)
+	public ModelAndView calendarGetPlan(HttpSession session, String empId) throws Exception{
+		ModelAndView mav=weeklyService.calendarGetPlan(session, empId);
 		return mav;
 	}
-	@RequestMapping(value="inputPlanCalendar")
-	public ModelAndView inputPlanCalendar(String empId, String planDate, String content) throws Exception{
-		ModelAndView mav=weeklyService.inputPlanCalendar(empId, planDate, content);
-		return mav;
-	}
-	@RequestMapping(value="calendarGetPlan")
-	public ModelAndView calendarGetPlan(String empId) throws Exception{
-		ModelAndView mav=weeklyService.calendarGetPlan(empId);
+	@RequestMapping(value="calendarGetPlanManager", method=RequestMethod.POST)
+	public ModelAndView calendarGetPlanManager(HttpSession session) throws Exception{
+		ModelAndView mav=weeklyService.calendarGetPlanManager(session);
 		return mav;
 	}
 	/*
@@ -159,9 +159,15 @@ public class WeeklyController {
 	 * viewCalendarPlan.jsp 페이지로 이동
 	 * */
 	@RequestMapping(value="calendarPlan")
-	public ModelAndView calendarPlan(HttpSession session, String empId)throws Exception{
-		ModelAndView mav=weeklyService.calendarPlan(session, empId);
+	public ModelAndView calendarPlan(HttpSession session)throws Exception{
+		ModelAndView mav=weeklyService.calendarPlan(session);
 		return mav;
 	}
+	@RequestMapping(value="viewDailyReport")
+	public ModelAndView viewDailyReport(String empId, String planDate) throws Exception{
+		ModelAndView mav=weeklyService.viewDailyReport(empId, planDate);
+		return mav;
+	}
+
 
 }

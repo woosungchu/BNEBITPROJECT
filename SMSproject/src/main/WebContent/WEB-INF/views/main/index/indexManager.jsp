@@ -1,233 +1,228 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+
 <link rel='stylesheet' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/cupertino/jquery-ui.css' />
 <link rel='stylesheet' href='http://fullcalendar.io/js/fullcalendar-2.2.3/fullcalendar.css' />
+<link rel="stylesheet" href="http://cdn.oesmith.co.uk/morris-0.4.3.min.css">
 <link rel="stylesheet" href="/assets/css/mainBody.css">
+<link rel="stylesheet" href="/assets/css/simpleWeather.css">
+<jsp:useBean id="fullDate" class="java.util.Date" />
+<fmt:formatDate value="${fullDate }" pattern="yyyy/MM/dd" var="today" />
 
 <div id="bodyContainer" class="container-fluid xyz" style="visibility: hidden;">
 	<div class="row"><!-- first row -->
-		<div class="col-lg-3 col-md-5">
-			<div class="panel panel-primary c-pointer" onclick="location.href='/';">
+		<div class="col-lg-3 col-md-3">
+			<div class="panel panel-primary c-pointer" data-toggle="modal" data-target="#userInfoModal">
+			  <div class="panel-heading">
+			  	<div id="session-profile" class="row">
+			  		<div class="col-xs-3">
+			  			<i class="fa fa-user fa-5x"></i>
+			  		</div>
+			  		<div class="col-xs-9 text-right">
+			  			<div class="huge">${LOGIN_USER.dept.deptName} ${LOGIN_USER.empName}</div>
+			  		</div>
+			  	</div>
+			  </div>
+			</div>
+			<div class="panel panel-success c-pointer" onclick="location.href='/weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=0';">
 			  <div class="panel-heading">
 			  	<div class="row">
 			  		<div class="col-xs-3">
-			  			<i class="fa fa-comments fa-5x"></i>
+			  			<i class="fa fa-calendar-check-o fa-5x"></i>
 			  		</div>
 			  		<div class="col-xs-9 text-right">
-			  			<div class="huge">상담일지 작성</div>
+			  			<div class="huge">주간계획 조회</div>
 			  		</div>
 			  	</div>
 			  </div>
 			</div>
 			<!-- second panel -->
-			<div class="panel panel-success c-pointer" onclick="location.href='/dailyReport/insertDailyReportForm';">
+			<div class="panel panel-info c-pointer"
+			onclick="location.href='/dailyReport/selectDailyReportList'">
 			  <div class="panel-heading">
 			  	<div class="row">
 			  		<div class="col-xs-3">
-			  			<i class="fa fa-pencil-square fa-5x"></i>
+			  			<i class="fa fa-file-text fa-5x"></i>
 			  		</div>
 			  		<div class="col-xs-9 text-right">
-			  			<div class="huge">일일보고 작성</div>
+			  			<div class="huge">일일보고 조회</div>
 			  		</div>
 			  	</div>
 			  </div>
 			</div>
 		</div><!-- second panel end -->
-		<div class="col-lg-6 col-md-7">
-			<div class="panel panle-default">
-				<div class="table-responsive">
-					<table id="week-table" class="table text-center">
-						<tr class="color-high">
-							<th onclick="getMainPlan('left');"><i class="fa fa-arrow-left fa-lg"></i></th>
-							<th id="plan-monday" class="text-center"></th>
-							<th class="text-center"></th>
-							<th class="text-center"></th>
-							<th class="text-center"></th>
-							<th class="text-center"></th>
-							<th onclick="getMainPlan('right');"><i class="fa fa-arrow-right fa-lg"></i></th>
-						</tr><!-- first tr -->
-						<c:forEach begin="0" end="3" varStatus="vs">
-						<tr>
-							<c:if test="${vs.index == 0 }"><td rowspan="4"></td></c:if>
-							<td class="week-monday">월</td>
-							<td class="week-tuesday">화</td>
-							<td class="week-wednesday">수</td>
-							<td class="week-thursday">목</td>
-							<td class="week-friday">금</td>
-							<c:if test="${vs.index == 0 }"><td rowspan="4"></td></c:if>
-						</tr><!-- second tr -->
-						</c:forEach>
-					</table>
+		<!-- 오늘 일정 목록 -->
+		<div class="col-lg-3 col-md-4">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h4 class="panel-title">${LOGIN_USER.dept.deptName} 직원 일정</h4>
+				</div>
+				<div class="panel-content">
+					<c:choose>
+						<c:when test="${not empty salesmanList}">
+							<ul id="to-do-list" class="list-group bg-trans">
+							<c:forEach var="v" items="${salesmanList}">
+								<li class="list-group-item c-pointer" data-emp-id="${v.empId}" onclick="location.href='/viewEmpPlan?empId=${v.empId}&planDate=${today}';">
+									<span class="label label-default pull-right">0</span>
+									${v.empName}
+								</li>
+							</c:forEach>
+							</ul>
+						</c:when>
+						<c:otherwise>
+							<div class="well text-center">
+								<h3>직원의 일정이 없습니다</h3>
+								<small><del>제발 일좀 하세요</del></small>
+							</div>
+						</c:otherwise>
+					</c:choose>
 				</div>
 				<div class="panel-footer">
-					<c:choose>
-                    	<c:when test="${LOGIN_USER.position eq 'Salesman'}">
-                    		<button onclick="location.href='${contextPath }/weeklyListEmp?empId=${LOGIN_USER.empId}&rownum=0';" 
-							type="button" class="btn btn-block btn-info">더 보기</button>
-                    	</c:when>
-                    	<c:when test="${LOGIN_USER.position eq 'Manager'}">
-							<button onclick="location.href='{contextPath }/weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=0';" 
-							type="button" class="btn btn-block btn-info">더 보기</button>
-                    	</c:when>
-                    </c:choose>
+					<a href="/weeklyList?deptId=${LOGIN_USER.dept.deptId}&rownum=0" type="button" class="btn btn-info btn-block">전체 직원 일정</a>
 				</div>
 			</div>
 		</div>
-		<div class="col-lg-3 hidden-md">
-			<div class="panel panle-default">
-				<div id='calendar'></div>
-			</div>
-		</div>
-		<!-- end your content -->
-	</div>
-	<div class="row"><!-- second row -->
-		<!-- start your content -->
+		<!-- calendar -->
 		<div class="col-lg-3 col-md-5">
 			<div class="panel panel-primary">
-			  <div class="panel-heading">
-			  	<h4>최근 거래처</h4>
-			  </div>
-			  <div class="panel-content">
-				<div class="panel-group" id="accordion" role="tablist">
-					<div class="panel panel-default">
-						<div class="panel-heading color-low">
-							<h4 class="panel-title">
-								<a role="button" data-toggle="collapse" data-parent="#accordion"
-								href="#collapseOne">
-									<i class="fa fa-exchange"></i> 동작대리점 사당슈퍼
-								</a>
-							</h4>
-						</div>
-						<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel">
-							<div class="panel-body">
-								<p><i class="fa fa-user"></i> 이재성  
-									<small  class="pull-right">
-										<i class="fa fa-arrows-h"></i>
-										남부지점 팀원 엘사
-									</small>
-								</p> 
-								<p><i class="fa fa-phone"></i> 010-1335-6568 </p>
-								<p><i class="fa fa-map-marker"></i> 경기도 하남시 초이동 </p>
-							</div>
-						</div>
-					</div><!-- first -->
-					<div class="panel panel-default">
-						<div class="panel-heading">
-							<h4 class="panel-title">
-								<a role="button" data-toggle="collapse" data-parent="#accordion"
-								href="#collapseTwo">
-									<i class="fa fa-exchange"></i> 강남대리점 비트센터
-								</a>
-							</h4>
-						</div>
-						<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel">
-							<div class="panel-body">
-								<p><i class="fa fa-user"></i> 이재성  
-									<small  class="pull-right">
-										<i class="fa fa-arrows-h"></i>
-										남부지점 팀원 엘사
-									</small>
-								</p> 
-								<p><i class="fa fa-phone"></i> 010-1335-6568 </p>
-								<p><i class="fa fa-map-marker"></i> 경기도 하남시 초이동 </p>
-							</div>
-						</div>
-					</div><!-- second -->
-					<div class="panel panel-default">
-						<div class="panel-heading">
-							<h4 class="panel-title">
-								<a role="button" data-toggle="collapse" data-parent="#accordion"
-								href="#collapseTwo">
-									<i class="fa fa-exchange"></i> 강남대리점 비트센터
-								</a>
-							</h4>
-						</div>
-						<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel">
-							<div class="panel-body">
-								<p><i class="fa fa-user"></i> 이재성  
-									<small  class="pull-right">
-										<i class="fa fa-arrows-h"></i>
-										남부지점 팀원 엘사
-									</small>
-								</p> 
-								<p><i class="fa fa-phone"></i> 010-1335-6568 </p>
-								<p><i class="fa fa-map-marker"></i> 경기도 하남시 초이동 </p>
-							</div>
-						</div>
-					</div><!-- third -->
-					<div class="panel panel-default">
-						<div class="panel-heading">
-							<h4 class="panel-title">
-								<a role="button" data-toggle="collapse" data-parent="#accordion"
-								href="#collapseTwo">
-									<i class="fa fa-exchange"></i> 강남대리점 비트센터
-								</a>
-							</h4>
-						</div>
-						<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel">
-							<div class="panel-body">
-								<p><i class="fa fa-user"></i> 이재성  
-									<small  class="pull-right">
-										<i class="fa fa-arrows-h"></i>
-										남부지점 팀원 엘사
-									</small>
-								</p> 
-								<p><i class="fa fa-phone"></i> 010-1335-6568 </p>
-								<p><i class="fa fa-map-marker"></i> 경기도 하남시 초이동 </p>
-							</div>
-						</div>
-					</div><!-- fourth -->
-				</div>			  
-			  </div>
-			  <div class="panel-footer">
-              	<button type="button" class="btn btn-block btn-info">더 보기</button>
-              </div>
-			</div>
-		</div><!-- second panel end -->
-		<div class="col-lg-6 col-md-7">
-			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h4>주간 매출</h4>
+					<h3 class="panel-title">달력</h3>
 				</div>
-				<div id="main-graph"></div>
-<!-- 				<div class="panel-footer"> -->
-<!-- 					<button type="button" class="btn btn-info btn-block">더 보기</button> -->
-<!-- 				</div> -->
+				<div class="panel-body bg-warning">
+					<div id='calendar'></div>
+				</div>
 			</div>
 		</div>
 		<div class="col-lg-3 hidden-md">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h4>부서 연락망 <span class="pull-right label label-success">Label Test</span></h4>
+					<h4 class="panel-title">부서 연락망</h4>
                 </div>
                 <div class="panel-content">
                 	<ul class="main-ul clearfix">
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li><a href="#" class="preventDefault"><img src="/assets/image/noname.png"></a><h5>주우성 <br/><small>070-8754-1523</small></h5></li>
-                		<li>
-                			<a href="#" class="preventDefault">
-                				<img src="/assets/image/noname.png">
-                			</a>
-                			<h5>주우성 <br/><small>070-8754-1523</small></h5>
-                		</li>
+                		<c:forEach var="v" items="${contactList }">
+	                		<li><a href="#" class="preventDefault btn-staff-info" data-empid="${v.empId}">
+	                			<c:choose>
+	                				<c:when test="${v.imgName != 'NONAME' && not empty v.imgName}">
+	                					<img src="/Upload/${v.imgName}">
+	                				</c:when>
+	                				<c:otherwise>
+			                			<img src="/assets/image/noname.png">
+	                				</c:otherwise>
+	                			</c:choose>
+	                			</a><h5 class="ellipsis">${v.empName}<br/><small>${v.phone }</small></h5></li>
+                		</c:forEach>
                 	</ul>
                 </div>
-<!--                 <div class="panel-footer"> -->
-<!--                 	<button type="button" class="btn btn-block btn-info">더 보기</button> -->
-<!--                 </div> -->
 	        </div>
+		</div>
+	</div>
+	<div class="row"><!-- second row -->
+		<!-- start your content -->
+
+		<!-- col-lg-3 -->
+		<div class="col-lg-3 col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">오늘의 날씨</h3>
+				</div>
+				<div class="panel-body bg-info">
+					<div id="weather"></div>
+				</div>
+			</div>
+			<div id="week-profit" class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">${LOGIN_USER.dept.deptName} 매출액</h3>
+				</div>
+				<div class="panel-body bg-success">
+					<div>
+						<h4>
+							<span><i class="fa fa-usd"></i> ${weeklyProfits}</span>
+							<span><i class="fa fa-long-arrow-right"></i></span>
+							<span><i class="fa fa-flag"></i> ${weeklySalesGoal}</span>
+						</h4>
+					</div>
+					<div class="progress">
+					  <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar"
+					  style="width:${weeklyProfits / weeklySalesGoal * 100}%; max-width : 100%;">
+					    ${fn:substringBefore((weeklyProfits / weeklySalesGoal * 100),'.')} %
+					  </div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- col-lg-6 -->
+		<div class="col-lg-6 hidden-md">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h4 class="panel-title">통계<span id="btnChart" class="pull-right label label-info c-pointer"><i class="fa fa-info-circle"></i></span></h4>
+				</div>
+<!-- 				<div id="main-graph"></div> -->
+				<div id="sales-chart" style="height: 300px;"></div>
+			</div>
+		</div>
+		<!-- col-lg-3 -->
+		<div class="col-lg-3 col-md-6">
+			<div class="panel panel-primary">
+			  <div class="panel-heading">
+			  	<h4 class="panel-title">최근 거래처</h4>
+			  </div>
+			  <div class="panel-content">
+				<div class="panel-group" id="accordion" role="tablist">
+					<c:choose>
+						<c:when test="${not empty contractList }">
+							<c:forEach var="v" items="${contractList}" varStatus="vs">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<h4 class="panel-title">
+											<a role="button" data-toggle="collapse" data-parent="#accordion"
+											href="#collapse-${vs.index}">
+												<i class="fa fa-exchange"></i> ${v.client.clientName} ${v.client.secondName}
+											</a>
+										</h4>
+									</div>
+									<c:choose>
+										<c:when test="${vs.index == 0 }">
+									<div id="collapse-${vs.index}" class="panel-collapse collapse in" role="tabpanel">
+										</c:when>
+										<c:otherwise>
+									<div id="collapse-${vs.index}" class="panel-collapse collapse" role="tabpanel">
+										</c:otherwise>
+									</c:choose>
+										<div class="panel-body">
+											<p><i class="fa fa-user"></i> ${v.client.ceo }
+												<small  class="pull-right">
+													<i class="fa fa-arrows-h"></i>
+													${v.dailyReport.employee.dept.deptName}
+													<c:set var="position" value="${v.dailyReport.employee.position}"></c:set>
+													<c:choose>
+														<c:when test="${position eq 'Salesman'}">팀원</c:when>
+														<c:when test="${position eq 'Manager'}">팀장</c:when>
+													</c:choose>
+													${ v.dailyReport.employee.empName }
+												</small>
+											</p>
+											<p><i class="fa fa-phone"></i> ${v.client.phone } </p>
+											<p><i class="fa fa-map-marker"></i> ${v.client.address } </p>
+										</div>
+									</div>
+								</div><!-- second -->
+							</c:forEach>
+						</c:when>
+						<c:otherwise>
+							<div class="well text-center">
+								<h3>지난 계약이 없습니다</h3>
+								<small><del>제발 일좀 하세요</del></small>
+							</div>
+						</c:otherwise>
+					</c:choose>
+				</div>
+			  </div>
+			  <div class="panel-footer">
+              	<button id="btnMoreClient" type="button" class="btn btn-block btn-info">더 보기</button>
+              </div>
 		</div>
 		<!-- end your content -->
 	</div>
@@ -235,41 +230,11 @@
 <script src='http://fullcalendar.io/js/fullcalendar-2.2.3/lib/moment.min.js'></script>
 <script src='http://fullcalendar.io/js/fullcalendar-2.2.3/fullcalendar.min.js'></script>
 <script src='/assets/js/flotr2.min.js'></script>
+<script type="text/javascript"
+	src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script type="text/javascript"
+	src="http://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.0/morris.min.js"></script>
+<script type="text/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
 <script src='/assets/js/mainPage.js'></script>
-<script type="text/javascript">
-
-//calendar
-$('#calendar').fullCalendar({
-	eventSources:[{
-		events:function(start, end, timezone, callback){
-			$.ajax({
-				url:"/calendarGetPlan?empId=${LOGIN_USER.empId}",
-				type:'post',
-				dataType:'json',
-				success:function(data){
-					var events=[];
-					var eventList=data.Event;
-					for(var i=0;i<eventList.length;i++){
-						events.push({
-							title:eventList[i].title,
-							start:eventList[i].eventDate.substring(0,10),
-							rendering:'background'
-						});
-					}
-					var planList=data.Plan;
-					for(var i=0;i<planList.length;i++){
-						events.push({
-							title:planList[i].content,
-							start:planList[i].dailyPlan.planDate.substring(0,10)
-						});
-					}
-					callback(events);
-				}
-			});
-		}
-}],
-eventLimit : true
-});
-
-
-	</script>
+<script src='/assets/js/simpleWeather.min.js'></script>

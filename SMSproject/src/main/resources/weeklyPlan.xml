@@ -5,6 +5,7 @@
 
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★  Admin 용 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 	<typeAlias alias="pageOption" type="com.bnebit.sms.util.PageOption"/>
+	<typeAlias alias="weeklyPlan" type="com.bnebit.sms.vo.WeeklyPlan"/>
 
 	<resultMap id="weeklyPlanMap" class="java.util.HashMap">
 		<result property="weeklyPlanId" column="weekly_plan_id"/>
@@ -16,15 +17,11 @@
 		<result property="checked" column="checked"/>
 		<result property="regDate" column="reg_date"/>
 	</resultMap>
-	
-	<!-- 매출 목표가져오기 -->
-	<select id="selectWeeklySalesGoal" parameterClass="java.lang.String" resultClass="java.lang.Integer">
-		select sum(sales_goal)
-	      from daily_plan dp inner join weekly_plan wp
-	      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
-	      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
-	      and emp_id = #empId#
-	</select>
+
+	<resultMap id="weeklyPlanListResultMap2" class="weeklyPlan">
+		<result property="weeklyPlanId" column="weekly_plan_id"/>
+		<result property="monday" column="monday"/>
+	</resultMap>
 
 	<!-- 모든 주간 계획을 목록을 통하여 보여줌  -->
 	<select id="selectWeeklyPlanList" parameterClass="pageOption" resultMap="weeklyPlanMap">
@@ -47,11 +44,17 @@
 		              <isNotEmpty property="searchField">
 		                <isNotEmpty property="searchString" prepend="and">
 		                  <isEqual property="searchOper" compareValue="eq">
-		                    $searchField$ like '%' || #searchString# || '%'
-		                  </isEqual>
-		                  <isEqual property="searchOper" compareValue="ne">
-		                    $searchField$ not like '%' || #searchString# || '%'
-		                  </isEqual>
+	                          $searchField$ like #searchString#
+	                      </isEqual>
+	                      <isEqual property="searchOper" compareValue="ne">
+	                          $searchField$ not like #searchString#
+	                      </isEqual>
+	                      <isEqual property="searchOper" compareValue="in">
+	                          $searchField$ like '%' || #searchString# || '%'
+	                      </isEqual>
+	                      <isEqual property="searchOper" compareValue="ni">
+	                          $searchField$ not like '%' || #searchString# || '%'
+	                      </isEqual>
 		                  <isEqual property="searchOper" compareValue="ge">
 		                    $searchField$ <![CDATA[ >= ]]> #searchString#
 		                  </isEqual>
@@ -91,10 +94,16 @@
           <isNotEmpty property="searchField">
             <isNotEmpty property="searchString" prepend="and">
               <isEqual property="searchOper" compareValue="eq">
-                $searchField$ like '%' || #searchString# || '%'
+                  $searchField$ like #searchString#
               </isEqual>
               <isEqual property="searchOper" compareValue="ne">
-                $searchField$ not like '%' || #searchString# || '%'
+                  $searchField$ not like #searchString#
+              </isEqual>
+              <isEqual property="searchOper" compareValue="in">
+                  $searchField$ like '%' || #searchString# || '%'
+              </isEqual>
+              <isEqual property="searchOper" compareValue="ni">
+                  $searchField$ not like '%' || #searchString# || '%'
               </isEqual>
               <isEqual property="searchOper" compareValue="ge">
                 $searchField$ <![CDATA[ >= ]]> #searchString#
@@ -127,6 +136,20 @@
 	<delete id="deleteWeeklyPlan" parameterClass="string">
 		delete from weekly_plan where weekly_plan_id = #weeklyPlanId#
 	</delete>
+
+	<!-- 해당 주간 계획의 제목을 변경  -->
+	<update id="updateWeeklyPlanTitle" parameterClass="weeklyPlan">
+		update WEEKLY_PLAN
+		set title = #title#
+		where weekly_plan_id = #weeklyPlanId#
+	</update>
+
+	<!-- 해당 사용자가 작성한 모든 주간 계획 Id와 일정 날짜를 가져옴  -->
+	<select id="selectWeeklyListFromEmp" parameterClass="string" resultMap="weeklyPlanListResultMap2">
+		select weekly_plan_id, (to_char(monday,'YYYY.MM.DD  ~  ')||to_char(monday+4,'YYYY.MM.DD')) monday
+		from weekly_plan
+		where emp_id = #empId#
+	</select>
 	<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   -->
 
 	<resultMap class="com.bnebit.sms.vo.WeeklyPlan" id="weeklyPlanListResultMap">
@@ -149,7 +172,7 @@
 									from WEEKLY_PLAN w, EMPLOYEE e
 									where e.emp_id=w.emp_id
 									      AND e.emp_id=#empId#
-									order by reg_date DESC) A
+									order by title DESC) A
 						where rownum <= #rownum#+10) B
 			where rnum > #rownum#
 		]]>
@@ -163,7 +186,7 @@
 									from EMPLOYEE e, WEEKLY_PLAN w
 									where e.emp_id=w.emp_id
 												AND e.dept_id=#deptId#
-									order by reg_date DESC) A
+									order by title DESC) A
 						where rownum <= #rownum# + 10) B
 			where rnum > #rownum#
 		]]>
@@ -178,7 +201,7 @@
 									where e.emp_id=w.emp_id
 												AND e.dept_id=#deptId#
 												AND w.monday=#monday#
-									order by reg_date) A
+									order by title DESC) A
 						where rownum <= #rownum# + 10) B
 			where rnum > #rownum#
 		]]>
@@ -240,7 +263,7 @@
 	</resultMap>
 	<!-- 한 팀원의 주간계획 조회 -->
 	<select id="selectWeeklyPlan" parameterClass="java.lang.String" resultMap="weeklyPlanSalesResultMap">
-		select  DISTINCT w.weekly_plan_id, e.emp_id, e.emp_name, d.dept_name, w.reg_date, w.title,
+		select  DISTINCT w.weekly_plan_id, e.emp_id, e.emp_name, d.dept_name, to_char(w.reg_date,'YYYY.MM.DD HH24:MI:SS') reg_date, w.title,
 	          to_char(w.monday, 'yyyy/mm/dd~')||to_char(w.monday+4, 'yyyy/mm/dd') monday,
 	          sum(p.sales_goal) over(partition by p.weekly_plan_id) sales_goal_sum,
 	          NVL((select sum(profit) from daily_report r, daily_plan p, weekly_plan w
@@ -299,6 +322,7 @@
 		<result property="weeklyPlan.employee.empId" column="emp_id"/>
 		<result property="weeklyPlan.employee.empName" column="emp_name"/>
 		<result property="planDate" column="plan_date"/>
+		<result property="weeklyPlan.weeklyPlanId" column="weekly_plan_id"/>
 	</resultMap>
 	<!-- 팀장 : 주간계획 제출한 모든 사원의 이름 조회 -->
 	<select id="selectCalendarManager" parameterClass="java.lang.String" resultMap="calendarLeaderResultMap">
@@ -309,7 +333,7 @@
     		  AND p.daily_plan_id=d.daily_plan_id
     		  AND e.dept_id=#weeklyPlan.employee.dept.deptId#
    		    AND d.PLAN_DATE between TO_DATE(#planDate#) AND ADD_MONTHS(TO_DATE(#planDate#), 1) -->
-   	select DISTINCT e.emp_name, d.plan_date, e.emp_id
+   	select DISTINCT e.emp_name, d.plan_date, e.emp_id, w.weekly_plan_id
 		from EMPLOYEE e, WEEKLY_PLAN w, DAILY_PLAN d, Plan p
 		where e.emp_id=w.emp_id
     		  AND w.WEEKLY_PLAN_ID=d.WEEKLY_PLAN_ID
@@ -321,15 +345,36 @@
 		<result property="dailyPlan.planDate" column="plan_date"/>
 		<result property="content" column="content"/>
 		<result property="dailyPlan.weeklyPlan.employee.empName" column="emp_name"/>
+		<result property="dailyPlan.weeklyPlan.monday" column="monday"/>
+		<result property="dailyPlan.weeklyPlan.weeklyPlanId" column="weekly_plan_id"/>
 	</resultMap>
 	<!-- 본인의 plan 조회 -->
 	<select id="selectCalendarPlan" parameterClass="java.lang.String" resultMap="calendarPlanResultMap">
-		select p.content, d.plan_date, e.emp_name
+		select p.content, d.plan_date, e.emp_name, to_char(w.monday, 'yy/MM/dd') monday, w.weekly_plan_id
 		from WEEKLY_PLAN w,DAILY_PLAN d, PLAN p, EMPLOYEE e
 		where w.weekly_plan_id=d.weekly_plan_id
 					AND w.emp_id=e.emp_id
     		  AND p.daily_plan_id=d.daily_plan_id
-      		AND w.emp_id=#weeklyPlan.employee.empId#
+      		AND w.emp_id=#empId#
 	</select>
-	
+
+	<select id="selectWeeklySalesGoalManager" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select sum(sales_goal)
+	      from daily_plan dp inner join weekly_plan wp
+	      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
+        inner join employee e
+        on e.emp_id = wp.emp_id
+	      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
+	      and dept_id = #deptId#
+	</select>
+
+	<!-- 매출 목표가져오기 -->
+	<select id="selectWeeklySalesGoal" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select sum(sales_goal)
+	      from daily_plan dp inner join weekly_plan wp
+	      on dp.WEEKLY_PLAN_ID = wp.WEEKLY_PLAN_ID
+	      where trunc(monday) = (TRUNC(sysdate, 'DAY') +1)
+	      and emp_id = #empId#
+	</select>
+
 </sqlMap>

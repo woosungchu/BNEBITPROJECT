@@ -5,7 +5,7 @@
 
 <div id="sidebar-wrapper">
             <ul class="sidebar-nav nav-pills nav-stacked" id="menu">
-                <li class="active">
+                <li>
                     <a href="${contextPath }/"><span class="fa-stack fa-lg pull-left"><i class="fa fa-home fa-stack-1x "></i></span> Home</a>
                 </li>
                 <li>
@@ -26,16 +26,10 @@
                     <a href="${contextPath }/client/clientAddForm"><span class="fa-stack fa-lg pull-left"><i class="fa fa-youtube-play fa-stack-1x "></i></span>거래처</a>
                 </li>
                 <li>
-                    <a href="#"><span class="fa-stack fa-lg pull-left"><i class="fa fa-cloud-download fa-stack-1x "></i></span>통계</a>
+                    <a href="${contextPath }/viewChart"><span class="fa-stack fa-lg pull-left"><i class="fa fa-cloud-download fa-stack-1x "></i></span>통계</a>
                 </li>
                 <li>
                     <a href="${contextPath }/message/receiveMessageList"> <span class="fa-stack fa-lg pull-left"><i class="fa fa-cart-plus fa-stack-1x "></i></span>메세지함</a>
                 </li>
-<!--                 <li> -->
-<!--                     <a href="#"><span class="fa-stack fa-lg pull-left"><i class="fa fa-wrench fa-stack-1x "></i></span>부서</a> -->
-<!--                 </li> -->
-<!--                 <li> -->
-<!--                     <a href="#"><span class="fa-stack fa-lg pull-left"><i class="fa fa-server fa-stack-1x "></i></span>Contact</a> -->
-<!--                 </li> -->
             </ul>
         </div><!-- /#sidebar-wrapper -->

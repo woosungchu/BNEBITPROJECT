@@ -5,13 +5,14 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 <c:set var="pageSet" value="${pageInfo.pageSet}" />
 <c:set var="requestUri" value="${requestScope['javax.servlet.forward.request_uri']}" />
+<c:set var="clientId" value="${client == null ? clientUpdateInfo.clientId : client.clientId}"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.1/css/bootstrap-datepicker.min.css">
 <div class="row">
 	<form id="searchForm" class="form-horizontal pull-right" action="${contextPath }${requestUri}" method="get">
 		<input type="hidden" id="sortName" name="sortName" value="${pageSet.sortName}" />
 		<input type="hidden" id="sortBy" name="sortBy" value="${pageSet.sortBy}" />
-		<input type="hidden" name="clientId" value="${client.clientId}" />
+		<input type="hidden" name="clientId" value="${clientId}" />
 		<div class="row">
 			<div class="form-group">
 				<div class="col-xs-5">
@@ -32,10 +33,10 @@
 				<div class="col-xs-4">
 					<select class="selectpicker form-control" data-title="선택해주세요"
 						id="searchKey" name="searchKey">
-						<option value="code">고객코드</option>
-						<option value="name">고객명</option>
+						<option value="client_code">고객코드</option>
+						<option value="client_name">고객명</option>
 						<option value="ceo">대표자</option>
-						<option value="addr">주소</option>
+						<option value="address">주소</option>
 					</select>
 				</div>
 				<div class="col-xs-4">
@@ -96,7 +97,7 @@
 				</table>
 				<div class="text-center">
 					<page:PagingTag
-						pageParamName="clientId=${client.clientId}&currentPage" linkUrl="${contextPath}${requestUri}" pageSet="${pageSet}" />
+						pageParamName="clientId=${clientId}&currentPage" linkUrl="${contextPath}${requestUri}" pageSet="${pageSet}" />
 				</div>
 			</div>
 		</div>

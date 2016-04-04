@@ -81,7 +81,7 @@
 							</div>
 							<div class="row">
 								<div id="collapse${vs.count }" class="panel-collapse collapse col-xs-11 text-center" role="tabpanel" aria-labelledby="heading${vs.count }">
-									<div class="panel-body">${message.content}</div>
+									<textarea class="panel-body accordion-content">${message.content}</textarea>
 		   						</div>
 							</div>
 						</div>
